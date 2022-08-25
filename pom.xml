@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>pro.velovec.inferno.reborn</groupId>
+    <artifactId>inferno-core</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>Inferno Project Reborn :: Parent</name>
+
+    <modules>
+        <module>common</module>
+        <module>realmd</module>
+        <module>worldd</module>
+    </modules>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>nexus.velovec.pro</id>
+            <url>https://nexus.velovec.pro/repository/maven-snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>nexus.velovec.pro</id>
+            <url>https://nexus.velovec.pro/repository/maven-releases/</url>
+        </repository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>nexus.velovec.pro</id>
+            <url>https://nexus.velovec.pro/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
+    <parent>
+        <groupId>pro.velovec.libs</groupId>
+        <artifactId>libs-root</artifactId>
+        <version>1.3.0-SNAPSHOT</version>
+        <relativePath />
+    </parent>
+
+    <properties>
+        <maven.compiler.source>15</maven.compiler.source>
+        <maven.compiler.target>15</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>15</java.version>
+
+        <docker.baseImage>openjdk:16-alpine</docker.baseImage>
+        <docker.repository>docker.velovec.pro/inferno</docker.repository>
+
+        <docker.skip.build>false</docker.skip.build>
+        <docker.skip.push>false</docker.skip.push>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>pro.velovec.libs</groupId>
+                <artifactId>spring-base</artifactId>
+                <version>1.3.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>pro.velovec.libs</groupId>
+                <artifactId>shell-server</artifactId>
+                <version>1.3.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.openjdk.nashorn</groupId>
+                <artifactId>nashorn-core</artifactId>
+                <version>15.3</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
