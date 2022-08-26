@@ -1,4 +1,5 @@
 .idea/
 target/
+maps/
 *.class
 *.jar

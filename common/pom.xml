@@ -12,20 +12,15 @@
     <artifactId>common</artifactId>
     <name>Inferno Project Reborn :: Common Library</name>
 
-    <properties>
-        <maven.compiler.source>18</maven.compiler.source>
-        <maven.compiler.target>18</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>pro.velovec.libs</groupId>
             <artifactId>spring-base</artifactId>
         </dependency>
+
         <dependency>
-            <groupId>pro.velovec.libs</groupId>
-            <artifactId>shell-server</artifactId>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
         </dependency>
     </dependencies>
 

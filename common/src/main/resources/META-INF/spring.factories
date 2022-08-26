@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  pro.velovec.inferno.reborn.common.CommonConfiguration

@@ -1,0 +1,36 @@
+server:
+  port: 8086
+  servlet:
+    context-path: /
+
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:postgresql://172.30.1.1:5432/inferno
+    username: postgres
+    password: P@ssw0rd
+  jackson:
+    date-format: com.fasterxml.jackson.databind.util.ISO8601DateFormat
+  jpa:
+    open-in-view: true
+    hibernate:
+      use-new-id-generator-mappings: true
+      ddl-auto: update
+  flyway:
+    enabled: false
+
+inferno:
+  common:
+    crypto:
+      salt: d41d8cd98f00b204e9800998ecf8427e
+    session:
+      ttl: 180
+    characters:
+      delete-after: 30
+  worldd:
+    name: Test World
+    listen:
+      host: 0.0.0.0
+      port: 8085
+    map:
+      data-path: ./maps/
