@@ -2,13 +2,11 @@ FROM @docker.baseImage@
 
 ENTRYPOINT ["java", "-jar", "/opt/@project.artifactId@/@project.artifactId@.jar", "--spring.config.location=classpath:application.yml,/opt/@project.artifactId@/@project.artifactId@.yml"]
 WORKDIR "/opt/@project.artifactId@"
-EXPOSE 1488 9488
+EXPOSE 8085 8086
 
-RUN mkdir -p /opt/@project.artifactId@/sshd /opt/@project.artifactId@/git /opt/@project.artifactId@/scripts
+RUN mkdir -p /opt/@project.artifactId@
 COPY classes/application.yml /opt/@project.artifactId@/@project.artifactId@.yml
 COPY @project.artifactId@-@project.version@.jar /opt/@project.artifactId@/@project.artifactId@.jar
-
-COPY examples /opt/@project.artifactId@/examples
 
 LABEL project.groupid="@project.groupId@" \
       project.artifactid="@project.artifactId@" \
