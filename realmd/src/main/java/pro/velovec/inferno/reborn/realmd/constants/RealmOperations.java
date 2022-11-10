@@ -22,7 +22,6 @@ public class RealmOperations {
     public static final byte CHARACTER_RENAME = 0x0C;
 
     public static final byte RACE_LIST = 0x0D;
-    public static final byte CLASS_LIST = 0x0E;
 
     private RealmOperations() {
         // Prevent class instantiation

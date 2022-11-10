@@ -4,6 +4,7 @@ package pro.velovec.inferno.reborn.worldd.script.wrapper;
 import pro.velovec.inferno.reborn.worldd.dao.script.EffectDirection;
 import pro.velovec.inferno.reborn.worldd.dao.script.EffectType;
 import pro.velovec.inferno.reborn.worldd.script.impl.EffectBase;
+import pro.velovec.inferno.reborn.worldd.dao.script.DamageType;
 import pro.velovec.inferno.reborn.worldd.world.creature.WorldCreature;
 import pro.velovec.inferno.reborn.worldd.world.object.WorldObject;
 
@@ -58,5 +59,10 @@ public class EffectWrapper {
 
     public EffectDirection getDirection() {
         return direction;
+    }
+
+    public boolean checkDamageType(DamageType damageType) {
+        // TODO: Check damage type
+        return true;
     }
 }

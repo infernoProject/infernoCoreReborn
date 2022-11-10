@@ -4,6 +4,11 @@ public class WorldOperations {
     public static final byte AUTHORIZE = 0x00;
     public static final byte EXECUTE = 0x01;
 
+    public static final byte STATS_ADD = 0x20;
+
+    public static final byte CLASS_LIST = 0x21;
+    public static final byte CLASS_ADD = 0x22;
+
     public static final byte MOVE = 0x30;
 
     public static final byte INVENTORY_LIST = 0x31;

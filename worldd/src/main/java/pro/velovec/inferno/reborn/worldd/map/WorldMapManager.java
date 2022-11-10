@@ -30,13 +30,7 @@ public class WorldMapManager {
     }
 
     public WorldMap getMap(WorldPosition position) {
-        WorldMap worldMap = maps.get(position.getLocation());
-        if (worldMap == null)
-            throw new IllegalStateException(String.format(
-                "MapData for location ID%d doesn't exist", position.getLocation()
-            ));
-
-        return worldMap;
+        return getMapById(position.getLocation());
     }
 
     public List<WorldMap> getMaps() {
@@ -68,5 +62,15 @@ public class WorldMapManager {
         } else {
             throw new IllegalStateException(String.format("MapData file for '%s' doesn't exist", location.getName()));
         }
+    }
+
+    public WorldMap getMapById(int locationId) {
+        WorldMap worldMap = maps.get(locationId);
+        if (worldMap == null)
+            throw new IllegalStateException(String.format(
+                "MapData for location ID%d doesn't exist", locationId
+            ));
+
+        return worldMap;
     }
 }

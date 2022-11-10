@@ -29,6 +29,8 @@ public class Effect implements ByteConvertible {
 
     private EffectDirection direction;
 
+    private DamageType damageType;
+
     @ManyToOne(fetch = FetchType.EAGER)
     private Script script;
 
@@ -80,15 +82,23 @@ public class Effect implements ByteConvertible {
         this.script = script;
     }
 
+    public DamageType getDamageType() {
+        return damageType;
+    }
+
+    public void setDamageType(DamageType damageType) {
+        this.damageType = damageType;
+    }
+
     public void apply(ConfigurableApplicationContext ctx, WorldObject caster, List<WorldObject> targets) throws ScriptException {
         EffectBase effectBase = (EffectBase) ctx.getBean(ScriptManager.class).eval(script);
 
-        final long duration = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.DURATION, this.duration);
+        final long duration = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.DURATION, this.duration, damageType);
 
         targets.parallelStream()
             .filter(target -> WorldCreature.class.isAssignableFrom(target.getClass()))
             .forEach(
-                target -> ((WorldCreature) target).applyEffect(effectBase, caster, duration, type, direction, id)
+                target -> ((WorldCreature) target).applyEffect(effectBase, caster, duration, type, direction, id, damageType)
             );
     }
 
@@ -97,6 +107,7 @@ public class Effect implements ByteConvertible {
         return new ByteArray()
             .put(id).put(name)
             .put(duration)
+            .put(damageType)
             .toByteArray();
     }
 }

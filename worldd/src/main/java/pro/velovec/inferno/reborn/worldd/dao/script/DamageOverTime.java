@@ -33,6 +33,9 @@ public class DamageOverTime implements ByteConvertible {
     @Column(name = "duration")
     private long duration;
 
+    @Column(name = "type")
+    private DamageType damageType;
+
     @ManyToOne(fetch = FetchType.EAGER)
     private Script script;
 
@@ -84,17 +87,25 @@ public class DamageOverTime implements ByteConvertible {
         this.script = script;
     }
 
+    public DamageType getDamageType() {
+        return damageType;
+    }
+
+    public void setDamageType(DamageType type) {
+        this.damageType = type;
+    }
+
     public void apply(ConfigurableApplicationContext ctx, WorldObject caster, List<WorldObject> targets) throws ScriptException {
         DamageOverTimeBase dotBase = (DamageOverTimeBase) ctx.getBean(ScriptManager.class).eval(script);
 
-        final long basicPotential = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.POTENTIAL, this.basicPotential);
-        final long duration = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.DURATION, this.duration);
-        final long tickInterval = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.TICK_TIME, this.tickInterval);
+        final long basicPotential = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.POTENTIAL, this.basicPotential, damageType);
+        final long duration = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.DURATION, this.duration, damageType);
+        final long tickInterval = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.TICK_TIME, this.tickInterval, damageType);
 
         targets.parallelStream()
             .filter(target -> WorldCreature.class.isAssignableFrom(target.getClass()))
             .forEach(
-                target -> ((WorldCreature) target).applyDamageOverTime(dotBase, caster, duration, tickInterval, basicPotential, id)
+                target -> ((WorldCreature) target).applyDamageOverTime(dotBase, caster, duration, tickInterval, basicPotential, id, damageType)
             );
     }
 
@@ -104,6 +115,7 @@ public class DamageOverTime implements ByteConvertible {
             .put(id).put(name)
             .put(basicPotential)
             .put(tickInterval).put(duration)
+            .put(damageType)
             .toByteArray();
     }
 }

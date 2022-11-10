@@ -1,5 +1,6 @@
 package pro.velovec.inferno.reborn.common.utils;
 
+import pro.velovec.inferno.reborn.common.exceptions.BufferUnderflowException;
 import pro.velovec.inferno.reborn.common.oid.OID;
 import pro.velovec.libs.base.utils.HexBin;
 
@@ -15,37 +16,72 @@ import java.util.List;
 public class ByteWrapper implements ByteConvertible {
 
     private final ByteBuffer buffer;
+    private final int size;
 
     public ByteWrapper(byte[] bytes) {
         buffer = ByteBuffer.wrap(bytes);
+        size = bytes.length;
+    }
+
+    public int getRemainingBytes() {
+        return size - buffer.position();
+    }
+
+    private void checkEnoughBytes(int bytesRequired) {
+        if (getRemainingBytes() < bytesRequired) {
+            int currentPosition = buffer.position();
+
+            buffer.rewind();
+            byte[] data = buffer.array();
+            buffer.position(currentPosition);
+
+            throw new BufferUnderflowException(String.format(
+                "Not enough bytes: %d expected, %d available\nHex: %s",
+                bytesRequired, getRemainingBytes(), HexBin.encode(data)
+            ));
+        }
     }
 
     public byte getByte() {
+        checkEnoughBytes(1);
+
         return buffer.get();
     }
 
     public boolean getBoolean() {
+        checkEnoughBytes(1);
+
         return getByte() == 1;
     }
 
     public Integer getInt() {
+        checkEnoughBytes(4);
+
         return buffer.getInt();
     }
 
     public Long getLong() {
+        checkEnoughBytes(8);
+
         return buffer.getLong();
     }
 
     public Float getFloat() {
+        checkEnoughBytes(4);
+
         return buffer.getFloat();
     }
 
     public Double getDouble() {
+        checkEnoughBytes(8);
+
         return buffer.getDouble();
     }
 
     public byte[] getBytes() {
-        byte[] bytes = new byte[buffer.getInt()];
+        byte[] bytes = new byte[getInt()];
+
+        checkEnoughBytes(bytes.length);
         buffer.get(bytes);
 
         return bytes;
@@ -60,7 +96,8 @@ public class ByteWrapper implements ByteConvertible {
     }
 
     public String[] getStrings() {
-        int arraySize = buffer.getInt();
+        int arraySize = getInt();
+
         String[] array = new String[arraySize];
 
         for (int i = 0; i < arraySize; i++) {
@@ -71,7 +108,7 @@ public class ByteWrapper implements ByteConvertible {
     }
 
     public List<ByteWrapper> getList() {
-        int listSize = buffer.getInt();
+        int listSize = getInt();
         List<ByteWrapper> list = new ArrayList<>();
 
         for (int i = 0; i < listSize; i++) {
@@ -107,6 +144,8 @@ public class ByteWrapper implements ByteConvertible {
     }
 
     public void skip(int bytes) {
+        checkEnoughBytes(bytes);
+
         buffer.position(buffer.position() + bytes);
     }
 

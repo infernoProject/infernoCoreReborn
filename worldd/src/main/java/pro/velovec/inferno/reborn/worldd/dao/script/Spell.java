@@ -59,6 +59,8 @@ public class Spell implements ByteConvertible {
     @ManyToOne(fetch = FetchType.EAGER)
     private Script script;
 
+    private DamageType damageType;
+
     public int getId() {
         return id;
     }
@@ -155,10 +157,18 @@ public class Spell implements ByteConvertible {
         this.script = script;
     }
 
+    public DamageType getDamageType() {
+        return damageType;
+    }
+
+    public void setDamageType(DamageType damageType) {
+        this.damageType = damageType;
+    }
+
     public void cast(ConfigurableApplicationContext ctx, WorldObject caster, List<WorldObject> targets) throws ScriptException {
         SpellBase spellBase = (SpellBase) ctx.getBean(ScriptManager.class).eval(script);
 
-        final long basicPotential = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.POTENTIAL, this.basicPotential);
+        final long basicPotential = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.POTENTIAL, this.basicPotential, this.damageType);
 
         targets.parallelStream().forEach(
             target -> spellBase.cast(ctx, caster, target, basicPotential)
@@ -172,7 +182,7 @@ public class Spell implements ByteConvertible {
             effect.apply(ctx, caster, targets);
         }
 
-        long coolDown = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.COOLDOWN, this.coolDown);
+        long coolDown = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.COOLDOWN, this.coolDown, this.damageType);
         caster.addCoolDown(id, coolDown);
     }
 
@@ -181,7 +191,7 @@ public class Spell implements ByteConvertible {
         return new ByteArray()
             .put(id).put(name).put(type.toString().toLowerCase())
             .put(distance).put(radius).put(basicPotential)
-            .put(coolDown)
+            .put(coolDown).put(damageType)
             .toByteArray();
     }
 }

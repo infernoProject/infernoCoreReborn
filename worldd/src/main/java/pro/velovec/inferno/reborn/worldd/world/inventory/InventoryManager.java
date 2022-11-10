@@ -19,4 +19,10 @@ public class InventoryManager {
     public List<CharacterInventoryItem> getCharacterInventory(int characterId) throws SQLException {
         return itemRepository.findAllByCharacterId(characterId);
     }
+
+    public double getInventoryWeight(int characterId) throws SQLException {
+        return getCharacterInventory(characterId).stream()
+            .mapToDouble(item -> item.getItem().getWeight() * item.getQuantity())
+            .sum();
+    }
 }

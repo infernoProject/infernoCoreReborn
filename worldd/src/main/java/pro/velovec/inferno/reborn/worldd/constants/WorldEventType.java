@@ -8,8 +8,10 @@ public class WorldEventType {
 
     public static final byte MOVE = 0x04;
 
-    public static final byte STATUS_CHANGE = 0x05;
-    public static final byte HP_CHANGE = 0x06;
+    public static final byte ATTRIBUTE_CHANGE = 0x05;
+
+//    public static final byte STATUS_CHANGE = 0x05;
+//    public static final byte HP_CHANGE = 0x06;
 
     public static final byte CHAT_MESSAGE = 0x07;
 

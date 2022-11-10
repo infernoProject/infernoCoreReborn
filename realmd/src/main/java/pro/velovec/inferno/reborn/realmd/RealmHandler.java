@@ -2,14 +2,13 @@ package pro.velovec.inferno.reborn.realmd;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.stereotype.Component;
+import pro.velovec.inferno.reborn.common.character.CharacterManager;
 import pro.velovec.inferno.reborn.common.dao.auth.Account;
 import pro.velovec.inferno.reborn.common.dao.auth.AccountBan;
 import pro.velovec.inferno.reborn.common.dao.auth.Session;
+import pro.velovec.inferno.reborn.common.dao.character.CharacterData;
 import pro.velovec.inferno.reborn.common.dao.character.CharacterInfo;
-import pro.velovec.inferno.reborn.common.dao.data.ClassInfo;
 import pro.velovec.inferno.reborn.common.dao.data.GenderInfo;
 import pro.velovec.inferno.reborn.common.dao.data.RaceInfo;
 import pro.velovec.inferno.reborn.common.dao.realmlist.RealmListEntry;
@@ -22,6 +21,7 @@ import pro.velovec.inferno.reborn.common.utils.ByteWrapper;
 
 import java.net.SocketAddress;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static pro.velovec.inferno.reborn.common.constants.CommonErrorCodes.*;
@@ -124,24 +124,23 @@ public class RealmHandler extends ServerHandler {
         return new ByteArray(SUCCESS).put(raceList);
     }
 
-    @ServerAction(opCode = CLASS_LIST, authRequired = true)
-    public ByteArray classListGet(ByteWrapper request, ServerSession session) throws Exception {
-        List<ClassInfo> classList = dataManager.classList();
-
-        return new ByteArray(SUCCESS).put(classList);
-    }
-
     @ServerAction(opCode = CHARACTER_LIST, authRequired = true)
     public ByteArray characterListGet(ByteWrapper request, ServerSession session) throws Exception {
-        List<CharacterInfo> characterList = characterManager.list(session.getAccount());
+        List<ByteArray> charactersData = new ArrayList<>();
+        characterManager.list(session.getAccount()).forEach(characterInfo -> {
+            ByteArray characterData = new ByteArray();
 
-        return new ByteArray(SUCCESS).put(characterList);
+            characterData.put(characterInfo);
+            characterData.put(characterManager.getCharacterData(characterInfo));
+
+            charactersData.add(characterData);
+        });
+
+        return new ByteArray(SUCCESS).put(charactersData);
     }
 
     @ServerAction(opCode = CHARACTER_CREATE, authRequired = true)
     public ByteArray characterCreate(ByteWrapper request, ServerSession session) throws Exception {
-        // request = request.getWrapper();
-
         CharacterInfo characterInfo = new CharacterInfo();
         characterInfo.setRealm(realmList.get(request.getInt()));
         characterInfo.setAccount(session.getAccount());
@@ -149,14 +148,19 @@ public class RealmHandler extends ServerHandler {
         characterInfo.setFirstName(request.getString());
         characterInfo.setLastName(request.getString());
 
-        characterInfo.setGender(Enum.valueOf(GenderInfo.class, request.getString().toUpperCase()));
-
+        characterInfo.setGender(request.getEnum(GenderInfo.class));
         characterInfo.setRaceInfo(dataManager.raceGetById(request.getInt()));
-        characterInfo.setClassInfo(dataManager.classGetById(request.getInt()));
 
         characterInfo.setBody(request.getBytes());
 
-        int characterId = characterManager.create(characterInfo);
+        ByteWrapper characterStats = request.getWrapper();
+
+        CharacterData characterData = CharacterData.fromStats(characterStats);
+        if (!CharacterManager.validateInitialStats(characterData)) {
+            return new ByteArray(SERVER_ERROR);
+        }
+
+        int characterId = characterManager.create(characterInfo, characterData);
         if (characterId > 0) {
             return new ByteArray(SUCCESS).put(characterId);
         } else {

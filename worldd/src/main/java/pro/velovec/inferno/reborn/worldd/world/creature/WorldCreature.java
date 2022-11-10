@@ -2,8 +2,11 @@ package pro.velovec.inferno.reborn.worldd.world.creature;
 
 
 
+import pro.velovec.inferno.reborn.common.constants.CommonConstants;
+import pro.velovec.inferno.reborn.common.dao.character.CharacterData;
 import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.worldd.constants.WorldEventType;
+import pro.velovec.inferno.reborn.worldd.dao.script.DamageType;
 import pro.velovec.inferno.reborn.worldd.dao.script.EffectAttribute;
 import pro.velovec.inferno.reborn.worldd.dao.script.EffectDirection;
 import pro.velovec.inferno.reborn.worldd.dao.script.EffectType;
@@ -15,6 +18,7 @@ import pro.velovec.inferno.reborn.worldd.world.WorldNotificationListener;
 import pro.velovec.inferno.reborn.worldd.world.object.WorldObject;
 import pro.velovec.inferno.reborn.worldd.world.object.WorldObjectType;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -23,29 +27,50 @@ import java.util.stream.Collectors;
 public class WorldCreature extends WorldObject {
 
     private volatile int level = 1;
-    private volatile long currentHitPoints = 10L;
-    private volatile long maxHitPoints = 10L;
+
+    protected WorldCreatureStats creatureStats;
+
+    private volatile long currentHitPoints;
     private WorldCreatureStatus status = WorldCreatureStatus.ALIVE;
 
     private final List<EffectWrapper> effects;
     private final List<DamageOverTimeWrapper> damageOverTime;
 
-    public WorldCreature(WorldNotificationListener notificationListener, String name) {
+    public WorldCreature(WorldNotificationListener notificationListener, String name, WorldCreatureStats creatureStats) {
         super(notificationListener, name);
 
         setType(WorldObjectType.CREATURE);
 
+        this.creatureStats = creatureStats;
         this.effects = new CopyOnWriteArrayList<>();
         this.damageOverTime = new CopyOnWriteArrayList<>();
+
+        this.currentHitPoints = creatureStats.getMaxHealth();
     }
 
     @Override
     public ByteArray getAttributes() {
         return super.getAttributes()
             .put(level)
+            .put(creatureStats)
             .put(currentHitPoints)
-            .put(maxHitPoints)
-            .put(status.toString().toLowerCase());
+            .put(status);
+    }
+
+
+    public int getAvailableStatPoints() {
+        Integer[] stats = new Integer[] {
+            creatureStats.getVitality(),
+            creatureStats.getStrength(),
+            creatureStats.getIntelligence(),
+            creatureStats.getControl(),
+            creatureStats.getAgility()
+        };
+
+        int statsSum = Arrays.stream(stats).mapToInt((x) -> x).sum();
+        int statsMax = CommonConstants.INITIAL_STATS_SUM + CommonConstants.STAT_POINTS_PER_LEVEL * getLevel();
+
+        return statsMax - statsSum;
     }
 
     public long getCurrentHitPoints() {
@@ -54,14 +79,6 @@ public class WorldCreature extends WorldObject {
 
     protected void setCurrentHitPoints(long currentHitPoints) {
         this.currentHitPoints = currentHitPoints;
-    }
-
-    public long getMaxHitPoints() {
-        return maxHitPoints;
-    }
-
-    protected void setMaxHitPoints(long maxHitPoints) {
-        this.maxHitPoints = maxHitPoints;
     }
 
     public WorldCreatureStatus getStatus() {
@@ -76,11 +93,11 @@ public class WorldCreature extends WorldObject {
         return level;
     }
 
-    public synchronized void processHitPointChange(long hitPointChange) {
-        hitPointChange = processEffects(EffectDirection.DEFENSE, EffectAttribute.POTENTIAL, hitPointChange);
+    public synchronized void processHitPointChange(long hitPointChange, DamageType damageType) {
+        hitPointChange = processEffects(EffectDirection.DEFENSE, EffectAttribute.POTENTIAL, hitPointChange, damageType);
 
-        currentHitPoints = Math.min(Math.max(currentHitPoints + hitPointChange, 0), maxHitPoints);
-        currentCell.onEvent(this, WorldEventType.HP_CHANGE, new ByteArray().put(hitPointChange));
+        currentHitPoints = Math.min(Math.max(currentHitPoints + hitPointChange, 0), creatureStats.getMaxHealth());
+        currentCell.onEvent(this, WorldEventType.ATTRIBUTE_CHANGE, getAttributes());
 
         if (currentHitPoints == 0)
             processStatusChange(WorldCreatureStatus.DEAD);
@@ -90,12 +107,18 @@ public class WorldCreature extends WorldObject {
         if (status != newStatus) {
             status = newStatus;
 
-            currentCell.onEvent(this, WorldEventType.STATUS_CHANGE, new ByteArray().put(newStatus));
+            currentCell.onEvent(this, WorldEventType.ATTRIBUTE_CHANGE, getAttributes());
         }
     }
 
-    public void applyEffect(EffectBase effect, WorldObject caster, long duration, EffectType type, EffectDirection direction, long id) {
-        duration = processEffects(EffectDirection.DEFENSE, EffectAttribute.DURATION, duration);
+    public void processStatsChange(WorldCreatureStats creatureStats) {
+        this.creatureStats = creatureStats;
+
+        currentCell.onEvent(this, WorldEventType.ATTRIBUTE_CHANGE, getAttributes());
+    }
+
+    public void applyEffect(EffectBase effect, WorldObject caster, long duration, EffectType type, EffectDirection direction, long id, DamageType damageType) {
+        duration = processEffects(EffectDirection.DEFENSE, EffectAttribute.DURATION, duration, damageType);
 
         switch (type) {
             case AURA -> applyAura(effect, caster, duration, type, direction, id);
@@ -131,13 +154,13 @@ public class WorldCreature extends WorldObject {
         }
     }
 
-    public void applyDamageOverTime(DamageOverTimeBase damageOverTime, WorldObject caster, long duration, long tickInterval, long basicPotential, long id) {
+    public void applyDamageOverTime(DamageOverTimeBase damageOverTime, WorldObject caster, long duration, long tickInterval, long basicPotential, long id, DamageType damageType) {
         DamageOverTimeWrapper wrapper = this.damageOverTime.parallelStream()
             .filter(damageOverTimeWrapper -> damageOverTimeWrapper.getId() == id && damageOverTimeWrapper.getCaster().equals(caster))
             .findFirst().orElse(null);
 
-        duration = processEffects(EffectDirection.DEFENSE, EffectAttribute.DURATION, duration);
-        tickInterval = processEffects(EffectDirection.DEFENSE, EffectAttribute.TICK_TIME, tickInterval);
+        duration = processEffects(EffectDirection.DEFENSE, EffectAttribute.DURATION, duration, damageType);
+        tickInterval = processEffects(EffectDirection.DEFENSE, EffectAttribute.TICK_TIME, tickInterval, damageType);
 
         if (Objects.nonNull(wrapper)) {
             wrapper.extendDuration(duration);
@@ -171,11 +194,12 @@ public class WorldCreature extends WorldObject {
 
     // Effect processors
 
-    public long processEffects(EffectDirection direction, EffectAttribute attribute, long value) {
+    public long processEffects(EffectDirection direction, EffectAttribute attribute, long value, DamageType damageType) {
         final long[] input = new long[] { value };
 
         List<EffectWrapper> effects = this.effects.stream()
             .filter(effect -> direction.equals(effect.getDirection()))
+            .filter(effect -> effect.checkDamageType(damageType))
             .collect(Collectors.toList());
 
         switch (attribute) {

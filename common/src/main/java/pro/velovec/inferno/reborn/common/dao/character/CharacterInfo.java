@@ -37,34 +37,6 @@ public class CharacterInfo implements ByteConvertible {
     @Column(name = "gender")
     private GenderInfo gender;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    private ClassInfo classInfo;
-
-    @Column(name = "level")
-    private int level = 0;
-
-    @Column(name = "exp")
-    private long exp = 0;
-
-    @Column(name = "currency")
-    private long currency = 0;
-
-
-    @Column(name = "location")
-    private int location = 1;
-
-    @Column(name = "position_x")
-    private float positionX = .0f;
-
-    @Column(name = "position_y")
-    private float positionY = .0f;
-
-    @Column(name = "position_z")
-    private float positionZ = .0f;
-
-    @Column(name = "orientation")
-    private float orientation = .0f;
-
     @Column(name = "body")
     private byte[] body;
 
@@ -134,70 +106,6 @@ public class CharacterInfo implements ByteConvertible {
         this.gender = gender;
     }
 
-    public ClassInfo getClassInfo() {
-        return classInfo;
-    }
-
-    public void setClassInfo(ClassInfo classInfo) {
-        this.classInfo = classInfo;
-    }
-
-    public int getLevel() {
-        return level;
-    }
-
-    public void setLevel(int level) {
-        this.level = level;
-    }
-
-    public long getExp() {
-        return exp;
-    }
-
-    public void setExp(long exp) {
-        this.exp = exp;
-    }
-
-    public int getLocation() {
-        return location;
-    }
-
-    public void setLocation(int location) {
-        this.location = location;
-    }
-
-    public float getPositionX() {
-        return positionX;
-    }
-
-    public void setPositionX(float positionX) {
-        this.positionX = positionX;
-    }
-
-    public float getPositionY() {
-        return positionY;
-    }
-
-    public void setPositionY(float positionY) {
-        this.positionY = positionY;
-    }
-
-    public float getPositionZ() {
-        return positionZ;
-    }
-
-    public void setPositionZ(float positionZ) {
-        this.positionZ = positionZ;
-    }
-
-    public float getOrientation() {
-        return orientation;
-    }
-
-    public void setOrientation(float orientation) {
-        this.orientation = orientation;
-    }
-
     public byte[] getBody() {
         return body;
     }
@@ -225,19 +133,18 @@ public class CharacterInfo implements ByteConvertible {
     @Override
     public byte[] toByteArray() {
         return new ByteArray()
-            .put(id).put(realm.getId()).put(location)
+            .put(id).put(realm.getId())
             .put(firstName).put(lastName)
-            .put(raceInfo.getId()).put(gender.toString().toLowerCase()).put(classInfo.getId())
-            .put(level).put(exp).put(currency).put(body)
-            .put(positionX).put(positionY).put(positionZ)
+            .put(raceInfo.getId()).put(gender.toString().toLowerCase())
+            .put(body)
             .toByteArray();
     }
 
     @Override
     public String toString() {
         return String.format(
-            "CharacterInfo(ID=%d):LVL(%d):R(%s):C(%s): %s : %s %s",
-            id, level, raceInfo, classInfo, gender, firstName, lastName
+            "CharacterInfo(ID=%d):R(%s): %s : %s %s",
+            id, raceInfo, gender, firstName, lastName
         );
     }
 }

@@ -33,6 +33,12 @@ public class Item implements ByteConvertible {
     @Column(name = "allowed_slots")
     private String allowedSlots;
 
+    @Column(name = "type")
+    private ItemType type;
+
+    @Column(name = "weight")
+    private float weight;
+
     public int getId() {
         return id;
     }
@@ -104,10 +110,26 @@ public class Item implements ByteConvertible {
             .anyMatch(slotId -> slotId == slot);
     }
 
+    public ItemType getType() {
+        return type;
+    }
+
+    public void setType(ItemType type) {
+        this.type = type;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(float weight) {
+        this.weight = weight;
+    }
+
     @Override
     public byte[] toByteArray() {
         return new ByteArray()
-            .put(id).put(name)
+            .put(id).put(name).put(type).put(weight)
             .put(sellPrice).put(vendorPrice)
             .put(maxStack).put(maxOwned)
             .put(allowedSlots)

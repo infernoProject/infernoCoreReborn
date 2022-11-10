@@ -18,7 +18,11 @@ public class ClassInfo implements ByteConvertible {
 
     private String name;
 
-    private String resource;
+    private Integer maxLevel;
+
+    private boolean hidden;
+
+    private String requirements;
 
     public int getId() {
         return id;
@@ -36,18 +40,35 @@ public class ClassInfo implements ByteConvertible {
         this.name = name;
     }
 
-    public String getResource() {
-        return resource;
+    public String getRequirements() {
+        return requirements;
     }
 
-    public void setResource(String resource) {
-        this.resource = resource;
+    public void setRequirements(String requirements) {
+        this.requirements = requirements;
+    }
+
+    public Integer getMaxLevel() {
+        return maxLevel;
+    }
+
+    public void setMaxLevel(Integer maxLevel) {
+        this.maxLevel = maxLevel;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
     }
 
     @Override
     public byte[] toByteArray() {
         return new ByteArray()
-            .put(id).put(name).put(resource)
+            .put(id).put(name).put(maxLevel)
+            .put(requirements).put(hidden)
             .toByteArray();
     }
 

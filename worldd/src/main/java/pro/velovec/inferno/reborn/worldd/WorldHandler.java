@@ -8,13 +8,15 @@ import org.springframework.context.ConfigurableApplicationContext;
 import pro.velovec.inferno.reborn.common.dao.auth.Account;
 import pro.velovec.inferno.reborn.common.dao.auth.AccountLevel;
 import pro.velovec.inferno.reborn.common.dao.auth.Session;
+import pro.velovec.inferno.reborn.common.dao.character.CharacterClass;
+import pro.velovec.inferno.reborn.common.dao.character.CharacterData;
 import pro.velovec.inferno.reborn.common.dao.character.CharacterInfo;
+import pro.velovec.inferno.reborn.common.dao.data.ClassInfo;
 import pro.velovec.inferno.reborn.common.server.ServerAction;
 import pro.velovec.inferno.reborn.common.server.ServerHandler;
 import pro.velovec.inferno.reborn.common.server.ServerSession;
 import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.common.utils.ByteWrapper;
-import pro.velovec.inferno.reborn.worldd.constants.WorldEventType;
 import pro.velovec.inferno.reborn.worldd.dao.guild.Guild;
 import pro.velovec.inferno.reborn.worldd.dao.guild.GuildMember;
 import pro.velovec.inferno.reborn.worldd.dao.inventory.CharacterInventoryItem;
@@ -32,6 +34,7 @@ import pro.velovec.inferno.reborn.worldd.world.InternalCommand;
 import pro.velovec.inferno.reborn.worldd.world.WorldTimer;
 import pro.velovec.inferno.reborn.worldd.world.chat.ChatManager;
 import pro.velovec.inferno.reborn.worldd.world.chat.ChatMessageType;
+import pro.velovec.inferno.reborn.worldd.world.creature.WorldCreatureStats;
 import pro.velovec.inferno.reborn.worldd.world.guild.GuildManager;
 import pro.velovec.inferno.reborn.worldd.world.inventory.InventoryManager;
 import pro.velovec.inferno.reborn.worldd.world.invite.InviteManager;
@@ -70,6 +73,8 @@ public class WorldHandler extends ServerHandler {
 
     private final Map<String, Method> internalCommands;
 
+    private final WorldTimer worldTimer;
+
     private final String serverName;
 
     public WorldHandler(ConfigurableApplicationContext ctx) {
@@ -84,6 +89,7 @@ public class WorldHandler extends ServerHandler {
         inventoryManager = ctx.getBean(InventoryManager.class);
         spellManager = ctx.getBean(SpellManager.class);
         properties = ctx.getBean(WorldServerProperties.class);
+        worldTimer = ctx.getBean(WorldTimer.class);
 
         internalCommands = registerInternalCommands();
 
@@ -111,7 +117,14 @@ public class WorldHandler extends ServerHandler {
             System.exit(1);
         }
 
+        worldTimer.registerCallBack(this::update);
+        worldTimer.setServerName(serverName);
+
+        worldTimer.load();
+        worldTimer.start();
+
         schedule(() -> realmList.online(serverName, true), 10, 15);
+        schedule(worldTimer::save, 10, 15);
     }
 
     private Map<String, Method> registerInternalCommands() {
@@ -150,18 +163,18 @@ public class WorldHandler extends ServerHandler {
             ServerSession session = sessionGet(remoteAddress);
             WorldPlayer player = ((WorldSession) session).getPlayer();
             if (player != null) {
-                CharacterInfo characterInfo = player.getCharacterInfo();
+                CharacterData characterData = player.getCharacterData();
                 WorldPosition position = player.getPosition();
 
-                characterInfo.setLocation(position.getLocation());
+                characterData.setLocation(position.getLocation());
 
-                characterInfo.setPositionX(position.getX());
-                characterInfo.setPositionY(position.getY());
-                characterInfo.setPositionZ(position.getZ());
+                characterData.setPositionX(position.getX());
+                characterData.setPositionY(position.getY());
+                characterData.setPositionZ(position.getZ());
 
-                characterInfo.setOrientation(position.getOrientation());
+                characterData.setOrientation(position.getOrientation());
 
-                characterManager.update(characterInfo);
+                characterManager.update(characterData);
 
                 player.destroy();
             }
@@ -193,18 +206,25 @@ public class WorldHandler extends ServerHandler {
         serverSession.setAuthorized(true);
         serverSession.setAccount(account);
 
-        WorldPlayer player = new WorldPlayer((WorldSession) serverSession, session.getCharacterInfo());
+        WorldPlayer player = new WorldPlayer(
+            (WorldSession) serverSession, session.getCharacterInfo(),
+            characterManager.getCharacterData(session.getCharacterInfo()),
+            characterManager.listClasses(session.getCharacterInfo())
+        );
 
         player.updatePosition(player.getPosition(), worldMapManager.getMap(player.getPosition()));
 
         ((WorldSession) serverSession).setPlayer(player);
 
+        logger.info("Server datetime: {}", worldTimer.getServerDateTime());
         return new ByteArray(SUCCESS)
-            .put(session.getCharacterInfo().getLocation())
+            .put(player.getOID())
+            .put(worldMapManager.getMapById(player.getCharacterData().getLocation()).getLocation())
             .put(session.getCharacterInfo())
             .put(player.getState())
-            .put(WorldTimer.WORLD_TIMER.getServerTime())
-            .put(WorldTimer.WORLD_TIMER.getServerTimeRate());
+            .put(worldTimer.getServerDay())
+            .put(worldTimer.getServerTime())
+            .put(worldTimer.getServerTimeRate());
     }
 
     @ServerAction(opCode = EXECUTE, authRequired = true)
@@ -255,6 +275,86 @@ public class WorldHandler extends ServerHandler {
         return new ByteArray(INVALID_REQUEST);
     }
 
+    @ServerAction(opCode = STATS_ADD, authRequired = true)
+    public ByteArray statsAdd(ByteWrapper request, ServerSession session) throws Exception {
+        WorldPlayer player = ((WorldSession) session).getPlayer();
+
+        if (player.getAvailableStatPoints() > 0) {
+            CharacterData characterData = player.getCharacterData();
+
+            switch (request.getInt()) {
+                case 0:
+                    characterData.setVitality(characterData.getVitality() + 1);
+                    break;
+                case 1:
+                    characterData.setStrength(characterData.getStrength() + 1);
+                    break;
+                case 2:
+                    characterData.setIntelligence(characterData.getIntelligence() + 1);
+                    break;
+                case 3:
+                    characterData.setControl(characterData.getControl() + 1);
+                    break;
+                case 4:
+                    characterData.setAgility(characterData.getAgility() + 1);
+                    break;
+                default:
+                    return new ByteArray(INVALID_REQUEST);
+            }
+
+            characterManager.update(characterData);
+            player.processStatsChange(WorldCreatureStats.fromCharacterData(characterData));
+
+            return new ByteArray(SUCCESS)
+                .put(player.getState());
+        } else {
+            return new ByteArray(INSUFFICIENT_RESOURCES);
+        }
+    }
+
+    @ServerAction(opCode = CLASS_LIST, authRequired = true)
+    public ByteArray classList(ByteWrapper request, ServerSession session) throws Exception {
+        WorldPlayer player = ((WorldSession) session).getPlayer();
+
+        return new ByteArray(SUCCESS).put(
+            characterManager.listAvailableClasses(player.getCharacterInfo())
+        );
+    }
+
+    @ServerAction(opCode = CLASS_ADD, authRequired = true)
+    public ByteArray classAdd(ByteWrapper request, ServerSession session) throws Exception {
+        WorldPlayer player = ((WorldSession) session).getPlayer();
+
+        if (player.getAvailableClassPoints() > 0) {
+            ClassInfo classInfo = dataManager.classGetById(request.getInt());
+            if (Objects.isNull(classInfo)) {
+                return new ByteArray(NOT_EXISTS);
+            }
+
+            if (!characterManager.isEligibleForClass(classInfo, player.getCharacterInfo())) {
+                return new ByteArray(NOT_EXISTS);
+            }
+
+            if (characterManager.hasClass(classInfo, player.getCharacterInfo())) {
+                if (!characterManager.increaseClassLevel(classInfo, 1, player.getCharacterInfo())) {
+                    return new ByteArray(OUT_OF_RANGE);
+                }
+            } else {
+                CharacterClass characterClass = characterManager.addClass(classInfo, player.getCharacterInfo());
+                if (Objects.isNull(characterClass))  {
+                    return new ByteArray(SERVER_ERROR);
+                }
+            }
+
+            player.processClassListChange(characterManager.listClasses(player.getCharacterInfo()));
+
+            return new ByteArray(SUCCESS)
+                .put(player.getState());
+        } else {
+            return new ByteArray(INSUFFICIENT_RESOURCES);
+        }
+    }
+
     @ServerAction(opCode = MOVE, authRequired = true)
     public ByteArray move(ByteWrapper request, ServerSession session) throws Exception {
         WorldPlayer player = ((WorldSession) session).getPlayer();
@@ -283,9 +383,55 @@ public class WorldHandler extends ServerHandler {
     @ServerAction(opCode = INVENTORY_LIST, authRequired = true)
     public ByteArray inventoryList(ByteWrapper request, ServerSession session) throws Exception {
         WorldPlayer player = ((WorldSession) session).getPlayer();
-        List<CharacterInventoryItem> inventoryItems = inventoryManager.getCharacterInventory(player.getCharacterInfo().getId());
 
-        return new ByteArray(SUCCESS).put(inventoryItems);
+        List<CharacterInventoryItem> inventoryItems = inventoryManager.getCharacterInventory(player.getCharacterInfo().getId());
+        double inventoryWeight = inventoryManager.getInventoryWeight(player.getCharacterInfo().getId());
+
+        return new ByteArray(SUCCESS)
+            .put(inventoryItems)
+            .put(inventoryWeight);
+    }
+
+    @ServerAction(opCode = INVENTORY_ADD, authRequired = true)
+    public ByteArray inventoryAdd(ByteWrapper request, ServerSession session) throws Exception {
+        WorldPlayer player = ((WorldSession) session).getPlayer();
+
+        // TODO: Implement item add processing
+
+        List<CharacterInventoryItem> inventoryItems = inventoryManager.getCharacterInventory(player.getCharacterInfo().getId());
+        double inventoryWeight = inventoryManager.getInventoryWeight(player.getCharacterInfo().getId());
+
+        return new ByteArray(SUCCESS)
+            .put(inventoryItems)
+            .put(inventoryWeight);
+    }
+
+    @ServerAction(opCode = INVENTORY_REMOVE, authRequired = true)
+    public ByteArray inventoryRemove(ByteWrapper request, ServerSession session) throws Exception {
+        WorldPlayer player = ((WorldSession) session).getPlayer();
+
+        // TODO: Implement item remove processing
+
+        List<CharacterInventoryItem> inventoryItems = inventoryManager.getCharacterInventory(player.getCharacterInfo().getId());
+        double inventoryWeight = inventoryManager.getInventoryWeight(player.getCharacterInfo().getId());
+
+        return new ByteArray(SUCCESS)
+            .put(inventoryItems)
+            .put(inventoryWeight);
+    }
+
+    @ServerAction(opCode = INVENTORY_MOVE, authRequired = true)
+    public ByteArray inventoryMove(ByteWrapper request, ServerSession session) throws Exception {
+        WorldPlayer player = ((WorldSession) session).getPlayer();
+
+        // TODO: Implement item move processing
+
+        List<CharacterInventoryItem> inventoryItems = inventoryManager.getCharacterInventory(player.getCharacterInfo().getId());
+        double inventoryWeight = inventoryManager.getInventoryWeight(player.getCharacterInfo().getId());
+
+        return new ByteArray(SUCCESS)
+            .put(inventoryItems)
+            .put(inventoryWeight);
     }
 
     @ServerAction(opCode = SPELL_LIST, authRequired = true)
@@ -648,30 +794,31 @@ public class WorldHandler extends ServerHandler {
 
     @InternalCommand(command = "setTime", level = AccountLevel.ADMIN)
     public ByteArray setServerTime(String[] args) {
-        if (args.length < 1)
-            return new ByteArray(SERVER_ERROR);
-
-        if (!"-".equals(args[0])) {
-            WorldTimer.WORLD_TIMER.setServerTime(Long.parseLong(args[0]) * 1000);
-        }
-
-        if (args.length >= 2) {
-            WorldTimer.WORLD_TIMER.setServerTimeRate(Integer.parseInt(args[1]));
-        }
-
-        ByteArray timeChangeEvent = new ByteArray()
-            .put(WorldTimer.WORLD_TIMER.getServerTime())
-            .put(WorldTimer.WORLD_TIMER.getServerTimeRate());
-
-        sessionList().parallelStream()
-            .map(worldSession -> (WorldSession) worldSession)
-            .forEach(
-                worldSession -> worldSession.onEvent(
-                    WorldEventType.TIME_CHANGE, new ByteArray()
-                        .put(WorldObject.WORLD.getAttributes())
-                        .put(timeChangeEvent)
-                )
-            );
+        // TODO: Fix server time set command
+//        if (args.length < 1)
+//            return new ByteArray(SERVER_ERROR);
+//
+//        if (!"-".equals(args[0])) {
+//            worldTimer.setServerTime(Long.parseLong(args[0]) * 1000);
+//        }
+//
+//        if (args.length >= 2) {
+//            worldTimer.setServerTimeRate(Integer.parseInt(args[1]));
+//        }
+//
+//        ByteArray timeChangeEvent = new ByteArray()
+//            .put(worldTimer.getServerTime())
+//            .put(worldTimer.getServerTimeRate());
+//
+//        sessionList().parallelStream()
+//            .map(worldSession -> (WorldSession) worldSession)
+//            .forEach(
+//                worldSession -> worldSession.onEvent(
+//                    WorldEventType.TIME_CHANGE, new ByteArray()
+//                        .put(WorldObject.WORLD.getAttributes())
+//                        .put(timeChangeEvent)
+//                )
+//            );
 
         return new ByteArray(SUCCESS);
     }

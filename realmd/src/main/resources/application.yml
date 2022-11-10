@@ -5,10 +5,10 @@ server:
 
 spring:
   datasource:
-#    type: com.zaxxer.hikari.HikariDataSource
-#    url: jdbc:postgresql://postgres:5432/realmd
-#    username: postgres
-#    password: P@ssw0rd
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:postgresql://172.30.0.1:5432/inferno
+    username: postgres
+    password: P@ssw0rd
   jackson:
     date-format: com.fasterxml.jackson.databind.util.ISO8601DateFormat
   jpa:
