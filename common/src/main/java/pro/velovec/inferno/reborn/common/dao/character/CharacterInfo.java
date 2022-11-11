@@ -40,6 +40,9 @@ public class CharacterInfo implements ByteConvertible {
     @Column(name = "body")
     private byte[] body;
 
+    @Column(name = "birthday")
+    private int birthDay;
+
     @Column(name = "delete_flag")
     private int deleteFlag;
 
@@ -114,6 +117,14 @@ public class CharacterInfo implements ByteConvertible {
         this.body = body;
     }
 
+    public int getBirthDay() {
+        return birthDay;
+    }
+
+    public void setBirthDay(int birthDay) {
+        this.birthDay = birthDay;
+    }
+
     public int getDeleteFlag() {
         return deleteFlag;
     }
@@ -136,7 +147,7 @@ public class CharacterInfo implements ByteConvertible {
             .put(id).put(realm.getId())
             .put(firstName).put(lastName)
             .put(raceInfo.getId()).put(gender.toString().toLowerCase())
-            .put(body)
+            .put(body).put(birthDay)
             .toByteArray();
     }
 
