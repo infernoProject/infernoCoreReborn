@@ -105,4 +105,9 @@ public class ScriptManager {
     public Command getCommand(String command) throws SQLException {
         return commandRepository.findByName(command);
     }
+
+    public List<Command> listCommands() throws SQLException {
+        return commandRepository.findAll();
+    }
+
 }

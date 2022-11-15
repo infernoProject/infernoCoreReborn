@@ -12,6 +12,8 @@ import java.lang.annotation.Target;
 public @interface InternalCommand {
 
     String command();
+
+    String description() default "No description";
     AccountLevel level() default AccountLevel.USER;
 
 }

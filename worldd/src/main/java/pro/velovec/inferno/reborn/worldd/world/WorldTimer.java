@@ -32,6 +32,7 @@ public class WorldTimer extends Thread {
 
     private static final Logger logger = LoggerFactory.getLogger(WorldTimer.class);
     private final List<WorldTimerCallBack> callBackList = new ArrayList<>();
+    private final List<WorldTimeChangeCallBack> timeChangeCallBackList = new ArrayList<>();
 
     @Override
     public void run() {
@@ -93,6 +94,8 @@ public class WorldTimer extends Thread {
         this.serverTime = serverTime;
         this.serverTimeRate = serverTimeRate;
 
+        timeChangeCallBackList.parallelStream()
+            .forEach(callBack -> callBack.onTimeChange(serverDay, serverTime, serverTimeRate));
         save();
     }
 
@@ -102,6 +105,10 @@ public class WorldTimer extends Thread {
 
     public void registerCallBack(WorldTimerCallBack callback) {
         callBackList.add(callback);
+    }
+
+    public void registerCallBack(WorldTimeChangeCallBack callback) {
+        timeChangeCallBackList.add(callback);
     }
 
     public void save() {
@@ -131,6 +138,13 @@ public class WorldTimer extends Thread {
     public interface WorldTimerCallBack {
 
         void tick(Long timeDiff);
+
+    }
+
+    @FunctionalInterface
+    public interface WorldTimeChangeCallBack {
+
+        void onTimeChange(int serverDay, long serverTime, int serverTimeRate);
 
     }
 }

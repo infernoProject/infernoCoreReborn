@@ -17,6 +17,7 @@ import pro.velovec.inferno.reborn.common.server.ServerHandler;
 import pro.velovec.inferno.reborn.common.server.ServerSession;
 import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.common.utils.ByteWrapper;
+import pro.velovec.inferno.reborn.worldd.constants.WorldEventType;
 import pro.velovec.inferno.reborn.worldd.dao.guild.Guild;
 import pro.velovec.inferno.reborn.worldd.dao.guild.GuildMember;
 import pro.velovec.inferno.reborn.worldd.dao.inventory.CharacterInventoryItem;
@@ -118,6 +119,7 @@ public class WorldHandler extends ServerHandler {
         }
 
         worldTimer.registerCallBack(this::update);
+        worldTimer.registerCallBack(this::onServerTimeChange);
         worldTimer.setServerName(serverName);
 
         worldTimer.load();
@@ -260,7 +262,7 @@ public class WorldHandler extends ServerHandler {
             internalCommand.setAccessible(true);
 
             try {
-                return (ByteArray) internalCommand.invoke(this, (Object) args);
+                return (ByteArray) internalCommand.invoke(this, args, session);
             } catch (IllegalAccessException e) {
                 logger.error("Unable to execute internal command '{}': {}", command, e);
 
@@ -792,35 +794,96 @@ public class WorldHandler extends ServerHandler {
 
     // Internal commands
 
-    @InternalCommand(command = "setTime", level = AccountLevel.ADMIN)
-    public ByteArray setServerTime(String[] args) {
+    @InternalCommand(command = "help", level = AccountLevel.USER)
+    public ByteArray help(String[] args, ServerSession session) throws SQLException {
+        StringBuilder result = new StringBuilder("Internal commands: \n");
+
+        for (String command: internalCommands.keySet()) {
+            InternalCommand internalCommandInfo = internalCommands.get(command).getAnnotation(InternalCommand.class);
+
+            if (AccountLevel.hasAccess(session.getAccount().getAccessLevel(), internalCommandInfo.level())) {
+                result.append(String.format(
+                    "%s: %s (%s)\n", command, internalCommandInfo.description(), internalCommandInfo.level()
+                ));
+            }
+        }
+
+        result.append("\n Scriptable commands:\n");
+
+        for (Command command: scriptManager.listCommands()) {
+            if (AccountLevel.hasAccess(session.getAccount().getAccessLevel(), command.getLevel())) {
+                result.append(String.format(
+                    "%s: %s (%s)\n", command.getName(), command.getDescription(), command.getLevel()
+                ));
+            }
+        }
+
+        return new ByteArray(SUCCESS).put(result.toString());
+    }
+
+    @InternalCommand(command = "setServerTime", description = "Set server time to given value (HH:MM[:SS])", level = AccountLevel.ADMIN)
+    public ByteArray setServerTime(String[] args, ServerSession session) {
         // TODO: Fix server time set command
-//        if (args.length < 1)
-//            return new ByteArray(SERVER_ERROR);
-//
-//        if (!"-".equals(args[0])) {
-//            worldTimer.setServerTime(Long.parseLong(args[0]) * 1000);
-//        }
-//
-//        if (args.length >= 2) {
-//            worldTimer.setServerTimeRate(Integer.parseInt(args[1]));
-//        }
-//
-//        ByteArray timeChangeEvent = new ByteArray()
-//            .put(worldTimer.getServerTime())
-//            .put(worldTimer.getServerTimeRate());
-//
-//        sessionList().parallelStream()
-//            .map(worldSession -> (WorldSession) worldSession)
-//            .forEach(
-//                worldSession -> worldSession.onEvent(
-//                    WorldEventType.TIME_CHANGE, new ByteArray()
-//                        .put(WorldObject.WORLD.getAttributes())
-//                        .put(timeChangeEvent)
-//                )
-//            );
+        if (args.length < 1)
+            return new ByteArray(SERVER_ERROR);
+
+        String[] timeParts = args[0].split(":");
+
+        if ((timeParts.length < 2) || (timeParts.length > 3))
+            return new ByteArray(SERVER_ERROR);
+
+        long hours = Long.parseLong(timeParts[0]) * 86400 * 1000;
+        long minutes = Long.parseLong(timeParts[1]) * 3600 * 1000;
+        long seconds = (timeParts.length == 3 ? Long.parseLong(timeParts[2]) : 0) * 1000;
+
+        long newServerTime = hours + minutes + seconds;
+
+        worldTimer.setServerTime(worldTimer.getServerDay(), newServerTime, worldTimer.getServerTimeRate());
 
         return new ByteArray(SUCCESS);
+    }
+
+    @InternalCommand(command = "setServerDay", description = "Set server day to given value", level = AccountLevel.ADMIN)
+    public ByteArray setServerDay(String[] args, ServerSession session) {
+        // TODO: Fix server time set command
+        if (args.length < 1)
+            return new ByteArray(SERVER_ERROR);
+
+        int newServerDay = Integer.parseInt(args[0]);
+
+        worldTimer.setServerTime(newServerDay, worldTimer.getServerTime(), worldTimer.getServerTimeRate());
+
+        return new ByteArray(SUCCESS);
+    }
+
+    @InternalCommand(command = "setServerTimeRate", description = "Set server time rate to given value", level = AccountLevel.ADMIN)
+    public ByteArray setServerTimeRate(String[] args, ServerSession session) {
+        // TODO: Fix server time set command
+        if (args.length < 1)
+            return new ByteArray(SERVER_ERROR);
+
+        int newServerTimeRate = Integer.parseInt(args[0]);
+
+        worldTimer.setServerTime(worldTimer.getServerDay(), worldTimer.getServerTime(), newServerTimeRate);
+
+        return new ByteArray(SUCCESS);
+    }
+
+    public void onServerTimeChange(int serverDay, long serverTime, int serverTimeRate) {
+        ByteArray timeChangeEvent = new ByteArray()
+            .put(serverDay)
+            .put(serverTime)
+            .put(serverTimeRate);
+
+        sessionList().parallelStream()
+            .map(worldSession -> (WorldSession) worldSession)
+            .forEach(
+                worldSession -> worldSession.onEvent(
+                    WorldEventType.TIME_CHANGE, new ByteArray()
+                        .put(WorldObject.WORLD.getAttributes())
+                        .put(timeChangeEvent)
+                )
+            );
     }
 
     public void update(Long diff) {
