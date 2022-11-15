@@ -150,8 +150,9 @@ public class WorldHandler extends ServerHandler {
     private boolean validateInternalCommand(Method action) {
         return action.isAnnotationPresent(InternalCommand.class) &&
             action.getReturnType().equals(ByteArray.class) &&
-            action.getParameterCount() == 1 &&
-            action.getParameterTypes()[0].equals(String[].class);
+            action.getParameterCount() == 2 &&
+            action.getParameterTypes()[0].equals(String[].class) &&
+            action.getParameterTypes()[1].equals(ServerSession.class);
     }
 
     @Override
