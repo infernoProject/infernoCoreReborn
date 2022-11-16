@@ -831,8 +831,8 @@ public class WorldHandler extends ServerHandler {
         if ((timeParts.length < 2) || (timeParts.length > 3))
             return new ByteArray(SERVER_ERROR);
 
-        long hours = Long.parseLong(timeParts[0]) * 86400 * 1000;
-        long minutes = Long.parseLong(timeParts[1]) * 3600 * 1000;
+        long hours = Long.parseLong(timeParts[0]) * 3600 * 1000;
+        long minutes = Long.parseLong(timeParts[1]) * 60 * 1000;
         long seconds = (timeParts.length == 3 ? Long.parseLong(timeParts[2]) : 0) * 1000;
 
         long newServerTime = hours + minutes + seconds;
