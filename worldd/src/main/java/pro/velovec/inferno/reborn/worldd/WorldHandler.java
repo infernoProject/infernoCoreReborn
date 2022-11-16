@@ -219,7 +219,6 @@ public class WorldHandler extends ServerHandler {
 
         ((WorldSession) serverSession).setPlayer(player);
 
-        logger.info("Server datetime: {}", worldTimer.getServerDateTime());
         return new ByteArray(SUCCESS)
             .put(player.getOID())
             .put(worldMapManager.getMapById(player.getCharacterData().getLocation()).getLocation())
@@ -251,7 +250,7 @@ public class WorldHandler extends ServerHandler {
     }
 
     private ByteArray executeInternalCommand(String command, String[] args, ServerSession session) throws Exception {
-        logger.debug("Executing internal command '{}' with arguments: {}", command, args);
+        logger.info("User {} is executing internal command '{}' with arguments: {}", session.getAccount().getLogin(), command, args);
 
         if (internalCommands.containsKey(command)) {
             Method internalCommand = internalCommands.get(command);
@@ -795,7 +794,7 @@ public class WorldHandler extends ServerHandler {
 
     // Internal commands
 
-    @InternalCommand(command = "help", level = AccountLevel.USER)
+    @InternalCommand(command = "help", description = "Show available command list", level = AccountLevel.USER)
     public ByteArray help(String[] args, ServerSession session) throws SQLException {
         StringBuilder result = new StringBuilder("Internal commands: \n");
 
@@ -824,7 +823,6 @@ public class WorldHandler extends ServerHandler {
 
     @InternalCommand(command = "setServerTime", description = "Set server time to given value (HH:MM[:SS])", level = AccountLevel.ADMIN)
     public ByteArray setServerTime(String[] args, ServerSession session) {
-        // TODO: Fix server time set command
         if (args.length < 1)
             return new ByteArray(SERVER_ERROR);
 
@@ -846,7 +844,6 @@ public class WorldHandler extends ServerHandler {
 
     @InternalCommand(command = "setServerDay", description = "Set server day to given value", level = AccountLevel.ADMIN)
     public ByteArray setServerDay(String[] args, ServerSession session) {
-        // TODO: Fix server time set command
         if (args.length < 1)
             return new ByteArray(SERVER_ERROR);
 
@@ -859,7 +856,6 @@ public class WorldHandler extends ServerHandler {
 
     @InternalCommand(command = "setServerTimeRate", description = "Set server time rate to given value", level = AccountLevel.ADMIN)
     public ByteArray setServerTimeRate(String[] args, ServerSession session) {
-        // TODO: Fix server time set command
         if (args.length < 1)
             return new ByteArray(SERVER_ERROR);
 
