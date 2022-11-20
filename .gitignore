@@ -1,5 +1,8 @@
 .idea/
 target/
 maps/
+.venv/
 *.class
 *.jar
+*.iml
+*.raw

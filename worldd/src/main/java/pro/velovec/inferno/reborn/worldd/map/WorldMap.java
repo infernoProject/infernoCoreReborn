@@ -25,6 +25,8 @@ public class WorldMap {
     private final WorldCell[][] cells = new WorldCell[WorldSize.CELL_TOTAL][WorldSize.CELL_TOTAL];
 
     private final List<WorldObstacle> obstacles = new ArrayList<>();
+    private final short[][] heightMap;
+    private final float waterLevel;
 
     private static final Logger logger = LoggerFactory.getLogger(WorldMap.class);
 
@@ -39,10 +41,13 @@ public class WorldMap {
             }
         }
 
-        readMapData(mapData);
-    }
+        waterLevel = mapData.getFloat();
+        heightMap = mapData.getShortMatrix();
 
-    private void readMapData(ByteWrapper mapData) {
+        if (heightMap.length != WorldSize.MAP_SIZE + 1 || heightMap[0].length != WorldSize.MAP_SIZE + 1) {
+            throw new IllegalStateException("MapData: heightmap is invalid");
+        }
+
         for (ByteWrapper obstacleData: mapData.getList()) {
             obstacles.add(new WorldObstacle(location, obstacleData));
         }
