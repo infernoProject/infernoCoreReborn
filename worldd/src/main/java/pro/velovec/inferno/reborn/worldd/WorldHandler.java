@@ -357,7 +357,14 @@ public class WorldHandler extends ServerHandler {
         }
     }
 
-    @ServerAction(opCode = MOVE, authRequired = true)
+    @ServerAction(opCode = {
+        MOVE_START_FORWARD, MOVE_START_BACKWARD,
+        MOVE_START_STRAFE_LEFT, MOVE_START_STRAFE_RIGHT,
+        MOVE_START_TURN_LEFT, MOVE_START_TURN_RIGHT,
+        MOVE_START_PITCH_UP, MOVE_START_PITCH_DOWN,
+        MOVE_JUMP, MOVE_STOP, MOVE_STOP_STRAFE, MOVE_STOP_TURN, MOVE_STOP_PITCH,
+        MOVE_SET_RUN_MODE, MOVE_SET_WALK_MODE
+    }, authRequired = true)
     public ByteArray move(ByteWrapper request, ServerSession session) throws Exception {
         WorldPlayer player = ((WorldSession) session).getPlayer();
         WorldMap map = worldMapManager.getMap(player.getPosition());
@@ -380,6 +387,30 @@ public class WorldHandler extends ServerHandler {
         }
 
         return new ByteArray(ILLEGAL_MOVE).put(player.getPosition());
+    }
+
+    @ServerAction(opCode = TERRAIN_CHECK, authRequired = true)
+    public ByteArray terrainCheck(ByteWrapper request, ServerSession session) throws Exception {
+        WorldMap map = worldMapManager.getMapById(request.getInt());
+        if (Objects.nonNull(map)) {
+            // TODO: Implement Terrain data validation
+            return new ByteArray(SUCCESS)
+                .put(false)
+                .put(map.getLocation().getId());
+        }
+
+        return new ByteArray(NOT_EXISTS);
+    }
+
+    @ServerAction(opCode = TERRAIN_LOAD, authRequired = true)
+    public ByteArray terrainLoad(ByteWrapper request, ServerSession session) throws Exception {
+        WorldMap map = worldMapManager.getMapById(request.getInt());
+        if (Objects.nonNull(map)) {
+            return new ByteArray(SUCCESS)
+                .put(map);
+        }
+
+        return new ByteArray(NOT_EXISTS);
     }
 
     @ServerAction(opCode = INVENTORY_LIST, authRequired = true)

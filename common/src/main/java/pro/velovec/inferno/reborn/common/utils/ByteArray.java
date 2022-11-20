@@ -116,6 +116,22 @@ public class ByteArray implements ByteConvertible {
         return this;
     }
 
+    public ByteArray put(float[][] matrix) {
+        short width = (short) matrix.length;
+        short height = (short) matrix[0].length;
+
+        put(width);
+        put(height);
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                put(matrix[x][y]);
+            }
+        }
+
+        return this;
+    }
+
     public ByteArray put(Date value) {
         put(value != null ? value.getTime() : 0L);
 

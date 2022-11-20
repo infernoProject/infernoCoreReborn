@@ -94,15 +94,15 @@ public class ByteWrapper implements ByteConvertible {
         return bytes;
     }
 
-    public short[][] getShortMatrix() {
+    public float[][] getFloatMatrix() {
         short width = getShort();
         short height = getShort();
 
-        short[][] matrix = new short[width][height];
+        float[][] matrix = new float[width][height];
 
         for (short x = 0; x < width; x++) {
             for (short y = 0; y < height; y++) {
-                matrix[x][y] = getShort();
+                matrix[x][y] = getFloat();
             }
         }
 

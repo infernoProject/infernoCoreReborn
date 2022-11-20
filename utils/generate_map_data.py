@@ -36,7 +36,7 @@ class MapData:
 
             for x in range(HEIGHT_MAP_SIZE[0]):
                 for y in range(HEIGHT_MAP_SIZE[1]):
-                    map_data.write(struct.pack("<h", self.height_map[x][y]))
+                    map_data.write(struct.pack("<f", self.height_map[x][y]))
 
             for obstacle in self.obstacles:
                 map_data.write(obstacle.to_bytes())
@@ -45,7 +45,7 @@ class MapData:
 def read_hmap(hmap_file):
     h_map = [[0] * HEIGHT_MAP_SIZE[1]] * HEIGHT_MAP_SIZE[1]
 
-    struct_fmt = '<h'
+    struct_fmt = '<e'
     struct_len = struct.calcsize(struct_fmt)
     struct_unpack = struct.Struct(struct_fmt).unpack_from
 

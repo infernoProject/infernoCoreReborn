@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pro.velovec.inferno.reborn.common.oid.OID;
+import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.common.utils.ByteConvertible;
 import pro.velovec.inferno.reborn.common.utils.ByteWrapper;
 import pro.velovec.inferno.reborn.worldd.constants.WorldSize;
@@ -19,13 +20,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class WorldMap {
+public class WorldMap implements ByteConvertible {
 
     private final Location location;
     private final WorldCell[][] cells = new WorldCell[WorldSize.CELL_TOTAL][WorldSize.CELL_TOTAL];
 
     private final List<WorldObstacle> obstacles = new ArrayList<>();
-    private final short[][] heightMap;
+    private final float[][] heightMap;
     private final float waterLevel;
 
     private static final Logger logger = LoggerFactory.getLogger(WorldMap.class);
@@ -42,7 +43,7 @@ public class WorldMap {
         }
 
         waterLevel = mapData.getFloat();
-        heightMap = mapData.getShortMatrix();
+        heightMap = mapData.getFloatMatrix();
 
         if (heightMap.length != WorldSize.MAP_SIZE + 1 || heightMap[0].length != WorldSize.MAP_SIZE + 1) {
             throw new IllegalStateException(String.format(
@@ -170,5 +171,14 @@ public class WorldMap {
             .map(Arrays::asList)
             .flatMap(List::stream)
             .forEach(worldCell -> worldCell.onEvent(source, eventType, eventData));
+    }
+
+    @Override
+    public byte[] toByteArray() {
+        return new ByteArray()
+            .put(location.getId())
+            .put(waterLevel)
+            .put(heightMap)
+            .toByteArray();
     }
 }
