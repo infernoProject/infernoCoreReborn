@@ -4,6 +4,6 @@ import pro.velovec.inferno.reborn.common.utils.ByteConvertible;
 
 public interface WorldNotificationListener {
 
-    void onEvent(byte type, ByteConvertible data);
+    void onEvent(short type, ByteConvertible data);
 
 }

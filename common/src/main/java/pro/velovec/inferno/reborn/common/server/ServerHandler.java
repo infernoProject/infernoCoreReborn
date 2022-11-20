@@ -47,7 +47,7 @@ public abstract class ServerHandler extends ChannelInboundHandlerAdapter {
     protected final DataManager dataManager;
 
     private final Map<SocketAddress, ServerSession> sessions;
-    private final Map<Byte, Method> actions;
+    private final Map<Short, Method> actions;
 
 
     protected static Logger logger;
@@ -106,9 +106,9 @@ public abstract class ServerHandler extends ChannelInboundHandlerAdapter {
                 continue;
 
             ServerAction serverAction = method.getAnnotation(ServerAction.class);
-            for (byte opCode: serverAction.opCode()) {
+            for (short opCode: serverAction.opCode()) {
                 if (logger.isDebugEnabled())
-                    logger.debug(String.format("Action(0x%02X): %s", opCode, method.getName()));
+                    logger.debug(String.format("Action(0x%04X): %s", opCode, method.getName()));
                 actions.put(opCode, method);
             }
         }
@@ -144,7 +144,7 @@ public abstract class ServerHandler extends ChannelInboundHandlerAdapter {
             logger.debug("IN: {}", request.toString());
 
         ServerSession serverSession = sessionGet(ctx.channel().remoteAddress());
-        byte opCode = request.getByte();
+        short opCode = request.getShort();
 
         if (actions.containsKey(opCode)) {
             Method actionMethod = actions.get(opCode);

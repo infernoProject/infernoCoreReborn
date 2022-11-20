@@ -4,8 +4,8 @@ package pro.velovec.inferno.reborn.worldd.map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pro.velovec.inferno.reborn.common.utils.ByteWrapper;
-import pro.velovec.inferno.reborn.worldd.dao.map.Location;
-import pro.velovec.inferno.reborn.worldd.dao.map.LocationRepository;
+import pro.velovec.inferno.reborn.common.dao.map.Location;
+import pro.velovec.inferno.reborn.common.dao.map.LocationRepository;
 import pro.velovec.inferno.reborn.worldd.world.movement.WorldPosition;
 
 import java.io.File;

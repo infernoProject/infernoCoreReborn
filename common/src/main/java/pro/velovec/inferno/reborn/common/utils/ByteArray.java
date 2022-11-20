@@ -24,7 +24,7 @@ public class ByteArray implements ByteConvertible {
         byteStream = new ByteArrayOutputStream();
     }
 
-    public ByteArray(byte errCode) {
+    public ByteArray(short errCode) {
         byteStream = new ByteArrayOutputStream();
 
         put(errCode);
@@ -62,6 +62,10 @@ public class ByteArray implements ByteConvertible {
                 .putInt(value.length)
                 .put(value)
         );
+    }
+
+    public ByteArray put(Short value) {
+        return put(ByteBuffer.allocate(2).putShort(value));
     }
 
     public ByteArray put(Integer value) {

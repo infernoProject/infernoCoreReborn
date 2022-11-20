@@ -5,6 +5,6 @@
 | |___| || |___| |      | || |_____ | |__/ / | |__/ /
  \______| \_____/       |_||_______)|_____/  |_____/
 
-Version: ${application.version}
-Powered by Spring Boot ${spring-boot.version}
+           Version: ${application.version}
+     Powered by Spring Boot ${spring-boot.version}
 

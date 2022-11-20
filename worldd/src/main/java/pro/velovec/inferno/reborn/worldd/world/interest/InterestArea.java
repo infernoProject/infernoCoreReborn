@@ -60,7 +60,7 @@ public class InterestArea {
         this.outerInterestArea.addAll(outerInterestArea);
     }
 
-    public void onEvent(WorldCell cell, byte type, ByteWrapper data) {
+    public void onEvent(WorldCell cell, short type, ByteWrapper data) {
         ByteWrapper sourceData = data.getWrapper();
         OID source = sourceData.getOID();
         data.rewind();
@@ -126,7 +126,7 @@ public class InterestArea {
         }
     }
 
-    private void sendEvent(byte type, ByteConvertible data) {
+    private void sendEvent(short type, ByteConvertible data) {
         if (notificationListener != null) {
             notificationListener.onEvent(type, data);
         }

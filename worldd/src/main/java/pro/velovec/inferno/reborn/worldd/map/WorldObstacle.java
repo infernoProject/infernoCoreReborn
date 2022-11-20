@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pro.velovec.inferno.reborn.common.utils.ByteWrapper;
-import pro.velovec.inferno.reborn.worldd.dao.map.Location;
+import pro.velovec.inferno.reborn.common.dao.map.Location;
 import pro.velovec.inferno.reborn.worldd.utils.MathUtils;
 import pro.velovec.inferno.reborn.worldd.world.movement.WorldPosition;
 

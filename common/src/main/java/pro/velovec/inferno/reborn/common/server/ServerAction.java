@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface ServerAction {
 
-    byte[] opCode();
+    short[] opCode();
     boolean authRequired() default false;
     AccountLevel minLevel() default AccountLevel.USER;
 }

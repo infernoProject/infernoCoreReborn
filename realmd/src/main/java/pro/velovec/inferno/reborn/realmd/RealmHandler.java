@@ -11,6 +11,8 @@ import pro.velovec.inferno.reborn.common.dao.character.CharacterData;
 import pro.velovec.inferno.reborn.common.dao.character.CharacterInfo;
 import pro.velovec.inferno.reborn.common.dao.data.GenderInfo;
 import pro.velovec.inferno.reborn.common.dao.data.RaceInfo;
+import pro.velovec.inferno.reborn.common.dao.map.Location;
+import pro.velovec.inferno.reborn.common.dao.map.LocationRepository;
 import pro.velovec.inferno.reborn.common.dao.realmlist.RealmListEntry;
 import pro.velovec.inferno.reborn.common.server.ServerAction;
 import pro.velovec.inferno.reborn.common.server.ServerHandler;
@@ -32,8 +34,12 @@ import static pro.velovec.inferno.reborn.realmd.constants.RealmOperations.*;
 @ChannelHandler.Sharable
 public class RealmHandler extends ServerHandler {
 
+    private final LocationRepository locationRepository;
+
     public RealmHandler(ConfigurableApplicationContext ctx) {
         super(ctx);
+
+        locationRepository = ctx.getBean(LocationRepository.class);
     }
 
     @ServerAction(opCode = CRYPTO_CONFIG)
@@ -128,12 +134,16 @@ public class RealmHandler extends ServerHandler {
     public ByteArray characterListGet(ByteWrapper request, ServerSession session) throws Exception {
         List<ByteArray> charactersData = new ArrayList<>();
         characterManager.list(session.getAccount()).forEach(characterInfo -> {
-            ByteArray characterData = new ByteArray();
+            CharacterData characterData = characterManager.getCharacterData(characterInfo);
+            Location characterLocation = locationRepository.findById(characterData.getLocation()).orElse(null);
 
-            characterData.put(characterInfo);
-            characterData.put(characterManager.getCharacterData(characterInfo));
+            ByteArray characterDataArray = new ByteArray();
 
-            charactersData.add(characterData);
+            characterDataArray.put(characterInfo);
+            characterDataArray.put(characterData);
+            characterDataArray.put(characterLocation);
+
+            charactersData.add(characterDataArray);
         });
 
         return new ByteArray(SUCCESS).put(charactersData);

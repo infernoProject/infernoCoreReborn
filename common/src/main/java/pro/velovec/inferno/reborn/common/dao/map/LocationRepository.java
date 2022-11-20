@@ -1,4 +1,4 @@
-package pro.velovec.inferno.reborn.worldd.dao.map;
+package pro.velovec.inferno.reborn.common.dao.map;
 
 import org.springframework.data.repository.CrudRepository;
 

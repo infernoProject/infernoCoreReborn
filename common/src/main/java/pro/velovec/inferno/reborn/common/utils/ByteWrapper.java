@@ -54,6 +54,13 @@ public class ByteWrapper implements ByteConvertible {
         return getByte() == 1;
     }
 
+    public Short getShort() {
+        checkEnoughBytes(2);
+
+        return buffer.getShort();
+    }
+
+
     public Integer getInt() {
         checkEnoughBytes(4);
 

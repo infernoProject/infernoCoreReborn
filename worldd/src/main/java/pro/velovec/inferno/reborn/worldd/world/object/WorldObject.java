@@ -46,7 +46,7 @@ public class WorldObject implements Comparable<WorldObject> {
         setType(WorldObjectType.OBJECT);
     }
 
-    public void onEvent(WorldCell cell, byte type, ByteConvertible data) {
+    public void onEvent(WorldCell cell, short type, ByteConvertible data) {
         interestArea.onEvent(cell, type, ByteWrapper.fromBytes(data));
     }
 

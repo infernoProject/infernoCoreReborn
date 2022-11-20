@@ -7,7 +7,7 @@ import pro.velovec.inferno.reborn.common.oid.OID;
 import pro.velovec.inferno.reborn.common.utils.ByteConvertible;
 import pro.velovec.inferno.reborn.common.utils.ByteWrapper;
 import pro.velovec.inferno.reborn.worldd.constants.WorldSize;
-import pro.velovec.inferno.reborn.worldd.dao.map.Location;
+import pro.velovec.inferno.reborn.common.dao.map.Location;
 import pro.velovec.inferno.reborn.worldd.utils.MathUtils;
 import pro.velovec.inferno.reborn.worldd.world.movement.WorldPosition;
 import pro.velovec.inferno.reborn.worldd.world.object.WorldObject;
@@ -156,7 +156,7 @@ public class WorldMap {
             .forEach(worldObject -> worldObject.update(diff));
     }
 
-    public void onEvent(WorldObject source, byte eventType, ByteConvertible eventData) {
+    public void onEvent(WorldObject source, short eventType, ByteConvertible eventData) {
         Arrays.asList(cells).parallelStream()
             .map(Arrays::asList)
             .flatMap(List::stream)
