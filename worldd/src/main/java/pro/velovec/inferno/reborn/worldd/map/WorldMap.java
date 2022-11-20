@@ -45,7 +45,11 @@ public class WorldMap {
         heightMap = mapData.getShortMatrix();
 
         if (heightMap.length != WorldSize.MAP_SIZE + 1 || heightMap[0].length != WorldSize.MAP_SIZE + 1) {
-            throw new IllegalStateException("MapData: heightmap is invalid");
+            throw new IllegalStateException(String.format(
+                "MapData: heightmap size is invalid (%dx%d) expected: (%dx%d)",
+                heightMap.length, heightMap[0].length,
+                (int) WorldSize.MAP_SIZE + 1, (int) WorldSize.MAP_SIZE + 1
+            ));
         }
 
         for (ByteWrapper obstacleData: mapData.getList()) {
