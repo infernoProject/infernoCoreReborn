@@ -205,6 +205,14 @@ public class CharacterManager {
         boolean eligible = true;
         for (String key: requirements.keySet()) {
             switch (key) {
+                case "race" -> {
+                    List<String> requiredRace = (List<String>) requirements.get("race");
+                    eligible = eligible && requiredRace.contains(characterData.getCharacter().getRaceInfo().getName());
+                }
+                case "no_race" -> {
+                    List<String> restrictedRace = (List<String>) requirements.get("no_race");
+                    eligible = eligible && !restrictedRace.contains(characterData.getCharacter().getRaceInfo().getName());
+                }
                 case "level" -> {
                     Integer requiredLevel = (Integer) requirements.get("level");
                     eligible = eligible && (requiredLevel <= characterData.getLevel());
