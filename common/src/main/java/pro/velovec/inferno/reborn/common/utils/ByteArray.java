@@ -117,14 +117,14 @@ public class ByteArray implements ByteConvertible {
     }
 
     public ByteArray put(float[][] matrix) {
-        short width = (short) matrix.length;
-        short height = (short) matrix[0].length;
+        short xSize = (short) matrix.length;
+        short ySize = (short) matrix[0].length;
 
-        put(width);
-        put(height);
+        put(xSize);
+        put(ySize);
 
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
+        for (int x = 0; x < xSize; x++) {
+            for (int y = 0; y < ySize; y++) {
                 put(matrix[x][y]);
             }
         }

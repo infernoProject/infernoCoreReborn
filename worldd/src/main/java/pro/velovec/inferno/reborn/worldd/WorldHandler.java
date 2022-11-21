@@ -123,7 +123,6 @@ public class WorldHandler extends ServerHandler {
         worldTimer.setServerName(serverName);
 
         worldTimer.load();
-        worldTimer.start();
 
         schedule(() -> realmList.online(serverName, true), 10, 15);
         schedule(worldTimer::save, 10, 15);
@@ -249,7 +248,7 @@ public class WorldHandler extends ServerHandler {
         }
     }
 
-    private ByteArray executeInternalCommand(String command, String[] args, ServerSession session) throws Exception {
+    private ByteArray executeInternalCommand(String command, String[] args, ServerSession session) {
         logger.info("User {} is executing internal command '{}' with arguments: {}", session.getAccount().getLogin(), command, args);
 
         if (internalCommands.containsKey(command)) {
@@ -362,10 +361,12 @@ public class WorldHandler extends ServerHandler {
         MOVE_START_STRAFE_LEFT, MOVE_START_STRAFE_RIGHT,
         MOVE_START_TURN_LEFT, MOVE_START_TURN_RIGHT,
         MOVE_START_PITCH_UP, MOVE_START_PITCH_DOWN,
-        MOVE_JUMP, MOVE_STOP, MOVE_STOP_STRAFE, MOVE_STOP_TURN, MOVE_STOP_PITCH,
+        MOVE_START_SWIM,
+        MOVE_JUMP, MOVE_HEARTBEAT, MOVE_FALL,
+        MOVE_STOP, MOVE_STOP_STRAFE, MOVE_STOP_TURN, MOVE_STOP_PITCH, MOVE_STOP_SWIM,
         MOVE_SET_RUN_MODE, MOVE_SET_WALK_MODE
     }, authRequired = true)
-    public ByteArray move(ByteWrapper request, ServerSession session) throws Exception {
+    public ByteArray move(ByteWrapper request, ServerSession session) {
         WorldPlayer player = ((WorldSession) session).getPlayer();
         WorldMap map = worldMapManager.getMap(player.getPosition());
 
@@ -390,7 +391,7 @@ public class WorldHandler extends ServerHandler {
     }
 
     @ServerAction(opCode = TERRAIN_CHECK, authRequired = true)
-    public ByteArray terrainCheck(ByteWrapper request, ServerSession session) throws Exception {
+    public ByteArray terrainCheck(ByteWrapper request, ServerSession session) {
         WorldMap map = worldMapManager.getMapById(request.getInt());
         if (Objects.nonNull(map)) {
             // TODO: Implement Terrain data validation
@@ -403,7 +404,7 @@ public class WorldHandler extends ServerHandler {
     }
 
     @ServerAction(opCode = TERRAIN_LOAD, authRequired = true)
-    public ByteArray terrainLoad(ByteWrapper request, ServerSession session) throws Exception {
+    public ByteArray terrainLoad(ByteWrapper request, ServerSession session) {
         WorldMap map = worldMapManager.getMapById(request.getInt());
         if (Objects.nonNull(map)) {
             return new ByteArray(SUCCESS)
@@ -468,7 +469,7 @@ public class WorldHandler extends ServerHandler {
     }
 
     @ServerAction(opCode = SPELL_LIST, authRequired = true)
-    public ByteArray spellList(ByteWrapper request, ServerSession session) throws Exception {
+    public ByteArray spellList(ByteWrapper request, ServerSession session) {
         WorldPlayer player = ((WorldSession) session).getPlayer();
         List<Spell> spellList = spellManager.listSpells(player);
 
@@ -758,7 +759,7 @@ public class WorldHandler extends ServerHandler {
     }
 
     @ServerAction(opCode = SCRIPT_LANGUAGE_LIST, authRequired = true, minLevel = AccountLevel.GAME_MASTER)
-    public ByteArray scriptLanguageList(ByteWrapper request, ServerSession session) throws Exception {
+    public ByteArray scriptLanguageList(ByteWrapper request, ServerSession session) {
         List<String> languages = scriptManager.getAvailableLanguages();
 
         return new ByteArray(SUCCESS).put(
@@ -779,7 +780,7 @@ public class WorldHandler extends ServerHandler {
     }
 
     @ServerAction(opCode = SCRIPT_VALIDATE, authRequired = true, minLevel = AccountLevel.GAME_MASTER)
-    public ByteArray scriptValidate(ByteWrapper request, ServerSession session) throws Exception {
+    public ByteArray scriptValidate(ByteWrapper request, ServerSession session) {
         Script script = new Script();
         script.setLanguage(request.getString());
         script.setScript(request.getString());
@@ -819,7 +820,7 @@ public class WorldHandler extends ServerHandler {
     }
 
     @ServerAction(opCode = HEART_BEAT)
-    public ByteArray heartBeat(ByteWrapper request, ServerSession session) throws Exception {
+    public ByteArray heartBeat(ByteWrapper request, ServerSession session) {
         return new ByteArray(SUCCESS).put(request.getLong());
     }
 
@@ -916,6 +917,8 @@ public class WorldHandler extends ServerHandler {
 
     public void update(Long diff) {
         worldMapManager.update(diff);
+        sessionList().parallelStream()
+            .forEach(session -> ((WorldSession) session).pushEvents());
     }
 
     @Override

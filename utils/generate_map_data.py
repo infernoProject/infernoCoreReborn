@@ -10,12 +10,12 @@ class Obstacle:
         self.point_list = point_list
 
     def to_bytes(self) -> bytes:
-        data = struct.pack("<i", len(self.point_list))
+        data = struct.pack(">i", len(self.point_list))
 
         for point in self.point_list:
-            point_data = struct.pack("<ff", point[0], point[1])
+            point_data = struct.pack(">ff", point[0], point[1])
 
-            data += struct.pack("<i", len(point_data)) + point_data
+            data += struct.pack(">i", len(point_data)) + point_data
 
         return data
 
@@ -32,20 +32,23 @@ class MapData:
             raise Exception("Invalid heightmap size")
 
         with open("%s.map" % map_name, 'wb') as map_data:
-            map_data.write(struct.pack("<fhh", self.water_level, HEIGHT_MAP_SIZE[0], HEIGHT_MAP_SIZE[1]))
+            map_data.write(struct.pack(">fhh", self.water_level, HEIGHT_MAP_SIZE[0], HEIGHT_MAP_SIZE[1]))
 
             for x in range(HEIGHT_MAP_SIZE[0]):
                 for y in range(HEIGHT_MAP_SIZE[1]):
-                    map_data.write(struct.pack("<f", self.height_map[x][y]))
+                    map_data.write(struct.pack(">f", self.height_map[x][y]))
 
+            map_data.write(struct.pack(">i", len(self.obstacles)))
             for obstacle in self.obstacles:
-                map_data.write(obstacle.to_bytes())
+                obstacle_bytes = obstacle.to_bytes()
+
+                map_data.write(struct.pack(">i", len(obstacle_bytes)) + obstacle_bytes)
 
 
 def read_hmap(hmap_file):
     h_map = [[0] * HEIGHT_MAP_SIZE[1]] * HEIGHT_MAP_SIZE[1]
 
-    struct_fmt = '<e'
+    struct_fmt = '>e'
     struct_len = struct.calcsize(struct_fmt)
     struct_unpack = struct.Struct(struct_fmt).unpack_from
 

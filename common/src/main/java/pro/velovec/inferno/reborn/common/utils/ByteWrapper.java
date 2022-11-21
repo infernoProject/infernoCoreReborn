@@ -29,15 +29,9 @@ public class ByteWrapper implements ByteConvertible {
 
     private void checkEnoughBytes(int bytesRequired) {
         if (getRemainingBytes() < bytesRequired) {
-            int currentPosition = buffer.position();
-
-            buffer.rewind();
-            byte[] data = buffer.array();
-            buffer.position(currentPosition);
-
             throw new BufferUnderflowException(String.format(
-                "Not enough bytes: %d expected, %d available\nHex: %s",
-                bytesRequired, getRemainingBytes(), HexBin.encode(data)
+                "Not enough bytes: %d expected, %d available",
+                bytesRequired, getRemainingBytes()
             ));
         }
     }
@@ -95,13 +89,13 @@ public class ByteWrapper implements ByteConvertible {
     }
 
     public float[][] getFloatMatrix() {
-        short width = getShort();
-        short height = getShort();
+        short xSize = getShort();
+        short ySize = getShort();
 
-        float[][] matrix = new float[width][height];
+        float[][] matrix = new float[xSize][ySize];
 
-        for (short x = 0; x < width; x++) {
-            for (short y = 0; y < height; y++) {
+        for (short x = 0; x < xSize; x++) {
+            for (short y = 0; y < ySize; y++) {
                 matrix[x][y] = getFloat();
             }
         }

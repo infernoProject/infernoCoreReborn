@@ -10,6 +10,7 @@ import pro.velovec.inferno.reborn.worldd.world.WorldNotificationListener;
 import pro.velovec.inferno.reborn.worldd.world.player.WorldPlayer;
 
 import java.net.SocketAddress;
+import java.util.*;
 
 import static pro.velovec.inferno.reborn.worldd.constants.WorldOperations.EVENT;
 
@@ -23,6 +24,7 @@ public class WorldSession implements ServerSession, WorldNotificationListener {
     private final SocketAddress remoteAddress;
 
     private WorldPlayer player;
+    private final Queue<ByteConvertible> eventQueue = new LinkedList<>();
 
     public WorldSession(ChannelHandlerContext ctx, SocketAddress remoteAddress) {
         this.ctx = ctx;
@@ -74,6 +76,16 @@ public class WorldSession implements ServerSession, WorldNotificationListener {
 
     @Override
     public void onEvent(short type, ByteConvertible data) {
-        write(EVENT, new ByteArray(type).put(data));
+        eventQueue.add(new ByteArray(type).put(data));
+    }
+
+    public void pushEvents() {
+        List<ByteConvertible> events = new ArrayList<>();
+
+        while (!eventQueue.isEmpty()) {
+            events.add(eventQueue.remove());
+        }
+
+        write(EVENT, new ByteArray().put(events));
     }
 }

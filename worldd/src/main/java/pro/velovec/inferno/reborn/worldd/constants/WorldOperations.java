@@ -25,11 +25,15 @@ public class WorldOperations {
     public static final short MOVE_START_TURN_RIGHT    = MOVE_BASE + 0x05;
     public static final short MOVE_START_PITCH_UP      = MOVE_BASE + 0x06;
     public static final short MOVE_START_PITCH_DOWN    = MOVE_BASE + 0x07;
+    public static final short MOVE_START_SWIM          = MOVE_BASE + 0x08;
     public static final short MOVE_JUMP                = MOVE_BASE + 0x10;
+    public static final short MOVE_HEARTBEAT           = MOVE_BASE + 0x11;
+    public static final short MOVE_FALL                = MOVE_BASE + 0x12;
     public static final short MOVE_STOP                = MOVE_BASE + 0x20;
     public static final short MOVE_STOP_STRAFE         = MOVE_BASE + 0x21;
     public static final short MOVE_STOP_TURN           = MOVE_BASE + 0x22;
     public static final short MOVE_STOP_PITCH          = MOVE_BASE + 0x23;
+    public static final short MOVE_STOP_SWIM           = MOVE_BASE + 0x24;
     public static final short MOVE_SET_RUN_MODE        = MOVE_BASE + 0x30;
     public static final short MOVE_SET_WALK_MODE       = MOVE_BASE + 0x31;
 
