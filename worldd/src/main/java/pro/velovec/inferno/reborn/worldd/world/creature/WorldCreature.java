@@ -3,7 +3,6 @@ package pro.velovec.inferno.reborn.worldd.world.creature;
 
 
 import pro.velovec.inferno.reborn.common.constants.CommonConstants;
-import pro.velovec.inferno.reborn.common.dao.character.CharacterData;
 import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.worldd.constants.WorldEventType;
 import pro.velovec.inferno.reborn.worldd.dao.script.DamageType;
@@ -200,7 +199,7 @@ public class WorldCreature extends WorldObject {
         List<EffectWrapper> effects = this.effects.stream()
             .filter(effect -> direction.equals(effect.getDirection()))
             .filter(effect -> effect.checkDamageType(damageType))
-            .collect(Collectors.toList());
+            .toList();
 
         switch (attribute) {
             case POTENTIAL -> effects.forEach(effect -> input[0] = effect.getEffect().processPotential(input[0]));
