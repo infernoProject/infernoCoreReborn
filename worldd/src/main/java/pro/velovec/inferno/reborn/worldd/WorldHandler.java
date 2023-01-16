@@ -214,7 +214,7 @@ public class WorldHandler extends ServerHandler {
             characterManager.listClasses(session.getCharacterInfo())
         );
 
-        player.updatePosition(player.getPosition(), worldMapManager.getMap(player.getPosition()));
+        player.updatePosition(MOVE_STOP, player.getPosition(), worldMapManager.getMap(player.getPosition()));
 
         ((WorldSession) serverSession).setPlayer(player);
 
@@ -230,13 +230,11 @@ public class WorldHandler extends ServerHandler {
 
     @ServerAction(opCode = EXECUTE, authRequired = true)
     public ByteArray executeCommand(ByteWrapper request, ServerSession session) throws Exception {
-        Command command = scriptManager.getCommand(request.getString());
+        String cmd = request.getString();
+        Command command = scriptManager.getCommand(cmd);
 
         if (command == null) {
-            request.rewind();
-            request.skip(1);
-
-            return executeInternalCommand(request.getString(), request.getStrings(), session);
+            return executeInternalCommand(cmd, request.getStrings(), session);
         }
 
         if (AccountLevel.hasAccess(session.getAccount().getAccessLevel(), command.getLevel())) {
@@ -370,6 +368,9 @@ public class WorldHandler extends ServerHandler {
         WorldPlayer player = ((WorldSession) session).getPlayer();
         WorldMap map = worldMapManager.getMap(player.getPosition());
 
+        request.rewind();
+        short opCode = request.getShort();
+
         try {
             WorldPosition position = new WorldPosition(
                 map.getLocation().getId(),
@@ -380,7 +381,7 @@ public class WorldHandler extends ServerHandler {
             );
 
             if (map.isLegalMove(player.getPosition(), position)) {
-                player.updatePosition(position, map);
+                player.updatePosition(opCode, position, map);
                 return new ByteArray(SUCCESS).put(position);
             }
         } catch (IllegalArgumentException e) {

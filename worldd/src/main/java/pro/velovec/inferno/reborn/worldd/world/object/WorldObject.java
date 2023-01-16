@@ -62,7 +62,7 @@ public class WorldObject implements Comparable<WorldObject> {
         return name;
     }
 
-    public void updatePosition(WorldPosition position, WorldMap map) {
+    public void updatePosition(short opCode, WorldPosition position, WorldMap map) {
         WorldCell targetCell = map.getCellByPosition(position);
 
         List<WorldCell> innerInterestArea = map.calculateInnerInterestArea(position);
@@ -88,7 +88,7 @@ public class WorldObject implements Comparable<WorldObject> {
             logger.debug("{} is entering {}", this, currentCell);
         }
 
-        targetCell.onEvent(this, WorldEventType.MOVE, new ByteArray().put(position));
+        targetCell.onEvent(this, WorldEventType.MOVE, new ByteArray().put(opCode).put(position));
 
         setPosition(position);
     }
