@@ -34,7 +34,7 @@ public class InfernoCommonProperties {
         this.characters = characters;
     }
 
-    public class CryptoProperties {
+    public static class CryptoProperties {
 
         private String salt;
 
@@ -47,7 +47,7 @@ public class InfernoCommonProperties {
         }
     }
 
-    public class SessionProperties {
+    public static class SessionProperties {
 
         private Integer ttl;
 
@@ -60,7 +60,7 @@ public class InfernoCommonProperties {
         }
     }
 
-    public class CharacterProperties {
+    public static class CharacterProperties {
 
         private Integer deleteAfter;
 

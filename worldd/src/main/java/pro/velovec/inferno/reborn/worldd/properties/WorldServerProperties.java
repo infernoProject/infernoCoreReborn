@@ -34,7 +34,7 @@ public class WorldServerProperties {
         this.name = name;
     }
 
-    public class MapProperties {
+    public static class MapProperties {
 
         private String dataPath;
 
