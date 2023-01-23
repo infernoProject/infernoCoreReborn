@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'maven:3.8.5-openjdk-17'
+            image 'maven:3.8.5-openjdk-18'
             label 'docker'
             args '-u 1001:998 -v ${HOME}/.m2:${WORKSPACE}/.m2 -v ${HOME}/.docker:${WORKSPACE}/.docker -v /usr/bin/docker:/usr/bin/docker -v /var/run/docker.sock:/var/run/docker.sock'
         }
