@@ -4,7 +4,7 @@ import pro.velovec.inferno.reborn.common.dao.character.CharacterInfo;
 import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.common.utils.ByteConvertible;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "guild_members") // characters

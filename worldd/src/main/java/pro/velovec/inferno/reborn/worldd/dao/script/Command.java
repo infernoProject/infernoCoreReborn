@@ -8,7 +8,7 @@ import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.worldd.script.ScriptManager;
 import pro.velovec.inferno.reborn.worldd.script.impl.CommandBase;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.script.ScriptException;
 
 @Entity

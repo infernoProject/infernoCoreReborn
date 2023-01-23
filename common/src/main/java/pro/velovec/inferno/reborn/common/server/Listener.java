@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 
 @Component
 @Scope("prototype")
@@ -20,12 +20,12 @@ public class Listener extends Thread {
 
     private ListenerProperties listenerProperties;
 
-    private ChannelHandler channelHandler;
+    private final ChannelHandler channelHandler;
 
-    private EventLoopGroup master = new NioEventLoopGroup();
-    private EventLoopGroup worker = new NioEventLoopGroup();
+    private final EventLoopGroup master = new NioEventLoopGroup();
+    private final EventLoopGroup worker = new NioEventLoopGroup();
 
-    private static Logger logger = LoggerFactory.getLogger(Listener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Listener.class);
 
     public Listener() {
         channelHandler = new ChannelHandler();
@@ -49,7 +49,7 @@ public class Listener extends Thread {
                 listenerProperties.getHost(),
                 listenerProperties.getPort()
             ).sync();
-            logger.info(
+            LOGGER.info(
                 "Listener(host='{}',port={}): started",
                 listenerProperties.getHost(),
                 listenerProperties.getPort()
@@ -63,7 +63,7 @@ public class Listener extends Thread {
 
     @PreDestroy
     public void preDestroy() {
-        logger.info(
+        LOGGER.info(
             "Listener(host='{}',port={}): shutdown in progress",
             listenerProperties.getHost(),
             listenerProperties.getPort()
@@ -72,7 +72,7 @@ public class Listener extends Thread {
         worker.shutdownGracefully();
         master.shutdownGracefully();
 
-        logger.info(
+        LOGGER.info(
             "Listener(host='{}',port={}): shutdown completed",
             listenerProperties.getHost(),
             listenerProperties.getPort()

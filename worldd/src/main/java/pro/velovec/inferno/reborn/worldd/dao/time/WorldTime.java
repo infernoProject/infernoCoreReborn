@@ -1,6 +1,6 @@
 package pro.velovec.inferno.reborn.worldd.dao.time;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Objects;
 
 @Entity

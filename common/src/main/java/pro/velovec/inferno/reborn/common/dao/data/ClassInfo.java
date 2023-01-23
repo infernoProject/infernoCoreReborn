@@ -3,10 +3,10 @@ package pro.velovec.inferno.reborn.common.dao.data;
 import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.common.utils.ByteConvertible;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "classes_info") // objects

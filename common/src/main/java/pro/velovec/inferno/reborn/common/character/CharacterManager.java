@@ -1,11 +1,12 @@
 package pro.velovec.inferno.reborn.common.character;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pro.velovec.inferno.reborn.common.constants.CommonConstants;
+
 import pro.velovec.inferno.reborn.common.dao.auth.Account;
 import pro.velovec.inferno.reborn.common.dao.character.*;
 import pro.velovec.inferno.reborn.common.dao.data.ClassInfo;
@@ -43,7 +44,7 @@ public class CharacterManager {
         return characterInfoRepository.findAllByAccountAndDeleteFlag(account, 0);
     }
 
-    public List<CharacterInfo> list_deleted(Account account) throws SQLException {
+    public List<CharacterInfo> list_deleted(Account account) {
         return characterInfoRepository.findAllByAccountAndDeleteFlag(account, 1);
     }
 
@@ -87,7 +88,7 @@ public class CharacterManager {
         return false;
     }
 
-    public boolean exists(CharacterInfo characterInfo) throws SQLException {
+    public boolean exists(CharacterInfo characterInfo) {
         return characterInfoRepository.findByRealmAndFirstNameAndLastNameAndDeleteFlag(
             characterInfo.getRealm(), characterInfo.getFirstName(), characterInfo.getLastName(), 0
         ) != null;
@@ -103,7 +104,7 @@ public class CharacterManager {
         return characterInfoRepository.findById(characterId).orElse(null);
     }
 
-    public void cleanup() throws SQLException {
+    public void cleanup() {
         characterInfoRepository.deleteAll(
             characterInfoRepository.findAllByDeleteFlagAndDeleteAfterBefore(1, new Date())
         );

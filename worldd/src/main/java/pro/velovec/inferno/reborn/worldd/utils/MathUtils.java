@@ -4,8 +4,11 @@ import pro.velovec.inferno.reborn.worldd.constants.WorldSize;
 import pro.velovec.inferno.reborn.worldd.world.movement.WorldPosition;
 
 import java.util.List;
+import java.util.Random;
 
 public final class MathUtils {
+
+    private static final Random RANDOM = new Random();
 
     /*
     Original Algorithm (https://habr.com/post/125356/)
@@ -54,7 +57,7 @@ public final class MathUtils {
         if (polygon.size() < 3)
             return false;
 
-        final int qPattern[][] = {{0, 1}, {2, 3}};
+        final int[][] qPattern = {{0, 1}, {2, 3}};
 
         WorldPosition previousPoint = polygon.get(0);
 
@@ -138,5 +141,9 @@ public final class MathUtils {
         return (float) Math.sqrt(
                 Math.pow(distanceX, 2.0f) + Math.pow(distanceY, 2.0) + Math.pow(distanceZ, 2.0)
         );
+    }
+
+    public static boolean checkProbability(double probability) {
+        return RANDOM.nextDouble() < probability;
     }
 }

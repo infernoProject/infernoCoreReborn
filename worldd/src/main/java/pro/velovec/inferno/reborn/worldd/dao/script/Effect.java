@@ -9,7 +9,7 @@ import pro.velovec.inferno.reborn.worldd.script.impl.EffectBase;
 import pro.velovec.inferno.reborn.worldd.world.creature.WorldCreature;
 import pro.velovec.inferno.reborn.worldd.world.object.WorldObject;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.script.ScriptException;
 import java.util.List;
 
@@ -26,8 +26,6 @@ public class Effect implements ByteConvertible {
     private long duration;
 
     private EffectType type;
-
-    private EffectDirection direction;
 
     private DamageType damageType;
 
@@ -66,14 +64,6 @@ public class Effect implements ByteConvertible {
         this.type = type;
     }
 
-    public EffectDirection getDirection() {
-        return direction;
-    }
-
-    public void setDirection(EffectDirection direction) {
-        this.direction = direction;
-    }
-
     public Script getScript() {
         return script;
     }
@@ -93,12 +83,12 @@ public class Effect implements ByteConvertible {
     public void apply(ConfigurableApplicationContext ctx, WorldObject caster, List<WorldObject> targets) throws ScriptException {
         EffectBase effectBase = (EffectBase) ctx.getBean(ScriptManager.class).eval(script);
 
-        final long duration = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.DURATION, this.duration, damageType);
+        final long duration = ((WorldCreature) caster).processEffects(CastDirection.OFFENSE, CastAttribute.DURATION, this.duration, damageType);
 
         targets.parallelStream()
             .filter(target -> WorldCreature.class.isAssignableFrom(target.getClass()))
             .forEach(
-                target -> ((WorldCreature) target).applyEffect(effectBase, caster, duration, type, direction, id, damageType)
+                target -> ((WorldCreature) target).applyEffect(effectBase, caster, duration, type, id, damageType)
             );
     }
 

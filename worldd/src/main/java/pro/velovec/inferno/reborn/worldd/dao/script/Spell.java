@@ -6,10 +6,11 @@ import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.common.utils.ByteConvertible;
 import pro.velovec.inferno.reborn.worldd.script.ScriptManager;
 import pro.velovec.inferno.reborn.worldd.script.impl.SpellBase;
+import pro.velovec.inferno.reborn.worldd.utils.MathUtils;
 import pro.velovec.inferno.reborn.worldd.world.creature.WorldCreature;
 import pro.velovec.inferno.reborn.worldd.world.object.WorldObject;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.script.ScriptException;
 import java.util.List;
 import java.util.Objects;
@@ -168,10 +169,10 @@ public class Spell implements ByteConvertible {
     public void cast(ConfigurableApplicationContext ctx, WorldObject caster, List<WorldObject> targets) throws ScriptException {
         SpellBase spellBase = (SpellBase) ctx.getBean(ScriptManager.class).eval(script);
 
-        final long basicPotential = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.POTENTIAL, this.basicPotential, this.damageType);
+        final long basicPotential = ((WorldCreature) caster).processEffects(CastDirection.OFFENSE, CastAttribute.POTENTIAL, this.basicPotential, this.damageType);
 
         targets.parallelStream().forEach(
-            target -> spellBase.cast(ctx, caster, target, basicPotential)
+            target -> cast(spellBase, ctx, caster, target, basicPotential)
         );
 
         if (Objects.nonNull(damageOverTime)) {
@@ -182,8 +183,26 @@ public class Spell implements ByteConvertible {
             effect.apply(ctx, caster, targets);
         }
 
-        long coolDown = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.COOLDOWN, this.coolDown, this.damageType);
+        long coolDown = ((WorldCreature) caster).processEffects(CastDirection.OFFENSE, CastAttribute.COOLDOWN, this.coolDown, this.damageType);
         caster.addCoolDown(id, coolDown);
+    }
+
+    private void cast(SpellBase spellBase, ConfigurableApplicationContext ctx, WorldObject caster, WorldObject target, long basicPotential) {
+        if (!caster.equals(target)) {
+            double hitChance = ((WorldCreature) caster).processEffects(CastDirection.OFFENSE, CastAttribute.HIT_CHANCE, 1.0, this.damageType);
+            if (!MathUtils.checkProbability(hitChance)) {
+                // TODO: Handle miss
+                return;
+            }
+
+            double evadeChance = ((WorldCreature) target).processEffects(CastDirection.DEFENSE, CastAttribute.HIT_CHANCE, 1.0, this.damageType);
+            if (MathUtils.checkProbability(evadeChance)) {
+                // TODO: Handle evade
+                return;
+            }
+        }
+
+        spellBase.cast(ctx, caster, target, basicPotential);
     }
 
     @Override

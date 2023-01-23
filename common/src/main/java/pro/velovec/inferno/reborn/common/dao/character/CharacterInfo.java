@@ -1,14 +1,13 @@
 package pro.velovec.inferno.reborn.common.dao.character;
 
 import pro.velovec.inferno.reborn.common.dao.auth.Account;
-import pro.velovec.inferno.reborn.common.dao.data.ClassInfo;
 import pro.velovec.inferno.reborn.common.dao.data.GenderInfo;
 import pro.velovec.inferno.reborn.common.dao.data.RaceInfo;
 import pro.velovec.inferno.reborn.common.dao.realmlist.RealmListEntry;
 import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.common.utils.ByteConvertible;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity

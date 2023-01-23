@@ -3,7 +3,7 @@ package pro.velovec.inferno.reborn.worldd.dao.items;
 import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.common.utils.ByteConvertible;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Arrays;
 
 @Entity

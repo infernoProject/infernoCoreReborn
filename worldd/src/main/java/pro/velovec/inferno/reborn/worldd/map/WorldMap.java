@@ -10,6 +10,7 @@ import pro.velovec.inferno.reborn.common.utils.ByteWrapper;
 import pro.velovec.inferno.reborn.worldd.constants.WorldSize;
 import pro.velovec.inferno.reborn.common.dao.map.Location;
 import pro.velovec.inferno.reborn.worldd.utils.MathUtils;
+import pro.velovec.inferno.reborn.worldd.world.creature.WorldCreature;
 import pro.velovec.inferno.reborn.worldd.world.movement.WorldPosition;
 import pro.velovec.inferno.reborn.worldd.world.object.WorldObject;
 
@@ -29,7 +30,7 @@ public class WorldMap implements ByteConvertible {
     private final float[][] heightMap;
     private final float waterLevel;
 
-    private static final Logger logger = LoggerFactory.getLogger(WorldMap.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WorldMap.class);
 
     public WorldMap(Location location, ByteWrapper mapData) {
         this.location = location;
@@ -143,16 +144,14 @@ public class WorldMap implements ByteConvertible {
     }
 
 
-    public boolean isLegalMove(WorldPosition currentPosition, WorldPosition newPosition) {
-        float distance = MathUtils.calculateDistance(currentPosition, newPosition);
+    public boolean isLegalMove(WorldCreature creature, WorldPosition newPosition) {
+        float distance = MathUtils.calculateDistance(creature.getPosition(), newPosition);
 
         if (distance > WorldSize.MAX_SPEED)
             return false;
 
-        return !obstacles.parallelStream()
-            .map(obstacle -> obstacle.isPathInsideObstacle(currentPosition, newPosition))
-            .filter(result -> result)
-            .findAny().orElse(false);
+        return obstacles.parallelStream()
+            .noneMatch(obstacle -> obstacle.isPathInsideObstacle(creature.getPosition(), newPosition));
     }
 
     public void update(long diff) {

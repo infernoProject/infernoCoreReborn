@@ -33,7 +33,7 @@ public class WorldObject implements Comparable<WorldObject> {
 
     private final Map<Integer, Long> cooldownMap = new ConcurrentHashMap<>();
 
-    protected static final Logger logger = LoggerFactory.getLogger(WorldObject.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(WorldObject.class);
 
     public static final WorldObject WORLD = new WorldObject(null, "World");
 
@@ -77,7 +77,7 @@ public class WorldObject implements Comparable<WorldObject> {
                     new ByteArray().put(targetCell.getX()).put(targetCell.getZ())
                 );
 
-                logger.debug("{} is leaving {}", this, currentCell);
+                LOGGER.debug("{} is leaving {}", this, currentCell);
             }
             targetCell.onEvent(
                 this, WorldEventType.ENTER,
@@ -85,7 +85,7 @@ public class WorldObject implements Comparable<WorldObject> {
             );
             currentCell = targetCell;
 
-            logger.debug("{} is entering {}", this, currentCell);
+            LOGGER.debug("{} is entering {}", this, currentCell);
         }
 
         targetCell.onEvent(this, WorldEventType.MOVE, new ByteArray().put(opCode).put(position));

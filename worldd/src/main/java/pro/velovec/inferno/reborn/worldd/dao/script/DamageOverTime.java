@@ -9,7 +9,7 @@ import pro.velovec.inferno.reborn.worldd.script.impl.DamageOverTimeBase;
 import pro.velovec.inferno.reborn.worldd.world.creature.WorldCreature;
 import pro.velovec.inferno.reborn.worldd.world.object.WorldObject;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.script.ScriptException;
 import java.util.List;
 
@@ -98,9 +98,9 @@ public class DamageOverTime implements ByteConvertible {
     public void apply(ConfigurableApplicationContext ctx, WorldObject caster, List<WorldObject> targets) throws ScriptException {
         DamageOverTimeBase dotBase = (DamageOverTimeBase) ctx.getBean(ScriptManager.class).eval(script);
 
-        final long basicPotential = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.POTENTIAL, this.basicPotential, damageType);
-        final long duration = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.DURATION, this.duration, damageType);
-        final long tickInterval = ((WorldCreature) caster).processEffects(EffectDirection.OFFENSE, EffectAttribute.TICK_TIME, this.tickInterval, damageType);
+        final long basicPotential = ((WorldCreature) caster).processEffects(CastDirection.OFFENSE, CastAttribute.POTENTIAL, this.basicPotential, damageType);
+        final long duration = ((WorldCreature) caster).processEffects(CastDirection.OFFENSE, CastAttribute.DURATION, this.duration, damageType);
+        final long tickInterval = ((WorldCreature) caster).processEffects(CastDirection.OFFENSE, CastAttribute.TICK_TIME, this.tickInterval, damageType);
 
         targets.parallelStream()
             .filter(target -> WorldCreature.class.isAssignableFrom(target.getClass()))

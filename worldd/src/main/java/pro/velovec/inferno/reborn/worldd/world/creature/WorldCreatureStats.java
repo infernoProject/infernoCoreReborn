@@ -4,6 +4,9 @@ import pro.velovec.inferno.reborn.worldd.constants.StatsConversionRates;
 import pro.velovec.inferno.reborn.common.dao.character.CharacterData;
 import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.common.utils.ByteConvertible;
+import pro.velovec.inferno.reborn.worldd.dao.script.DamageType;
+import pro.velovec.inferno.reborn.worldd.dao.script.CastAttribute;
+import pro.velovec.inferno.reborn.worldd.dao.script.CastDirection;
 
 public class WorldCreatureStats implements ByteConvertible {
 
@@ -153,4 +156,35 @@ public class WorldCreatureStats implements ByteConvertible {
 
         return stats;
     }
+
+    public long processAttribute(CastDirection direction, CastAttribute attribute, long value, DamageType damageType) {
+        if (direction == CastDirection.OFFENSE && damageType == DamageType.PHYSICAL) {
+            return processPhysicalOffence(attribute, value);
+        } else if (direction == CastDirection.OFFENSE && damageType == DamageType.MAGIC) {
+            return processMagicOffence(attribute, value);
+        } else if (direction == CastDirection.DEFENSE && damageType == DamageType.PHYSICAL) {
+            return processPhysicalDefence(attribute, value);
+        } else if (direction == CastDirection.DEFENSE && damageType == DamageType.MAGIC) {
+            return processMagicDefence(attribute, value);
+        }
+
+        return value;
+    }
+
+    private long processMagicDefence(CastAttribute attribute, long value) {
+        return value;
+    }
+
+    private long processPhysicalDefence(CastAttribute attribute, long value) {
+        return value;
+    }
+
+    private long processMagicOffence(CastAttribute attribute, long value) {
+        return value;
+    }
+
+    private long processPhysicalOffence(CastAttribute attribute, long value) {
+        return value;
+    }
+
 }

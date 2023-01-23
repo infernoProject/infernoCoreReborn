@@ -3,7 +3,7 @@ package pro.velovec.inferno.reborn.common.dao.auth;
 import pro.velovec.inferno.reborn.common.dao.character.CharacterInfo;
 import pro.velovec.libs.base.utils.HexBin;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.net.SocketAddress;
 import java.util.Date;
 import java.util.Random;

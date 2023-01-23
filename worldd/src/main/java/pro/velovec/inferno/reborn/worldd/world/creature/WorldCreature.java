@@ -6,8 +6,8 @@ import pro.velovec.inferno.reborn.common.constants.CommonConstants;
 import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.worldd.constants.WorldEventType;
 import pro.velovec.inferno.reborn.worldd.dao.script.DamageType;
-import pro.velovec.inferno.reborn.worldd.dao.script.EffectAttribute;
-import pro.velovec.inferno.reborn.worldd.dao.script.EffectDirection;
+import pro.velovec.inferno.reborn.worldd.dao.script.CastAttribute;
+import pro.velovec.inferno.reborn.worldd.dao.script.CastDirection;
 import pro.velovec.inferno.reborn.worldd.dao.script.EffectType;
 import pro.velovec.inferno.reborn.worldd.script.impl.DamageOverTimeBase;
 import pro.velovec.inferno.reborn.worldd.script.impl.EffectBase;
@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 
 public class WorldCreature extends WorldObject {
 
@@ -41,6 +40,7 @@ public class WorldCreature extends WorldObject {
         setType(WorldObjectType.CREATURE);
 
         this.creatureStats = creatureStats;
+
         this.effects = new CopyOnWriteArrayList<>();
         this.damageOverTime = new CopyOnWriteArrayList<>();
 
@@ -93,7 +93,7 @@ public class WorldCreature extends WorldObject {
     }
 
     public synchronized void processHitPointChange(long hitPointChange, DamageType damageType) {
-        hitPointChange = processEffects(EffectDirection.DEFENSE, EffectAttribute.POTENTIAL, hitPointChange, damageType);
+        hitPointChange = processEffects(CastDirection.DEFENSE, CastAttribute.POTENTIAL, hitPointChange, damageType);
 
         currentHitPoints = Math.min(Math.max(currentHitPoints + hitPointChange, 0), creatureStats.getMaxHealth());
         currentCell.onEvent(this, WorldEventType.ATTRIBUTE_CHANGE, getAttributes());
@@ -116,40 +116,42 @@ public class WorldCreature extends WorldObject {
         currentCell.onEvent(this, WorldEventType.ATTRIBUTE_CHANGE, getAttributes());
     }
 
-    public void applyEffect(EffectBase effect, WorldObject caster, long duration, EffectType type, EffectDirection direction, long id, DamageType damageType) {
-        duration = processEffects(EffectDirection.DEFENSE, EffectAttribute.DURATION, duration, damageType);
+    public void applyEffect(EffectBase effect, WorldObject caster, long duration, EffectType type, long id, DamageType damageType) {
+        duration = processEffects(CastDirection.DEFENSE, CastAttribute.DURATION, duration, damageType);
 
         switch (type) {
-            case AURA -> applyAura(effect, caster, duration, type, direction, id);
-            case BUFF, DEBUFF -> applyBuff(effect, caster, duration, type, direction, id);
+            case AURA -> applyAura(effect, caster, duration, type, id);
+            case BUFF, DEBUFF -> applyBuff(effect, caster, duration, type, id);
         }
     }
 
-    private void applyAura(EffectBase effect, WorldObject caster, long duration, EffectType type, EffectDirection direction, long id) {
+    private void applyAura(EffectBase effect, WorldObject caster, long duration, EffectType type, long id) {
         EffectWrapper wrapper = this.effects.parallelStream()
             .filter(effectWrapper -> effectWrapper.getId() == id && effectWrapper.getCaster().equals(caster))
             .findFirst().orElse(null);
 
         if (Objects.nonNull(wrapper)) {
             this.effects.remove(wrapper);
-            currentCell.onEvent(this, WorldEventType.EFFECT_REMOVE, new ByteArray().put(id).put(caster.getOID()).put(type));
+            currentCell.onEvent(this, WorldEventType.EFFECT_REMOVE, wrapper);
         } else {
-            this.effects.add(new EffectWrapper(effect, caster, duration, type, direction, id));
-            currentCell.onEvent(this, WorldEventType.EFFECT_ADD, new ByteArray().put(id).put(caster.getOID()).put(type).put(duration));
+            wrapper = new EffectWrapper(effect, caster, duration, type, id);
+            this.effects.add(wrapper);
+            currentCell.onEvent(this, WorldEventType.EFFECT_ADD, wrapper);
         }
     }
 
-    private void applyBuff(EffectBase effect, WorldObject caster, long duration, EffectType type, EffectDirection direction, long id) {
+    private void applyBuff(EffectBase effect, WorldObject caster, long duration, EffectType type, long id) {
         EffectWrapper wrapper = this.effects.parallelStream()
             .filter(effectWrapper -> effectWrapper.getId() == id && effectWrapper.getCaster().equals(caster))
             .findFirst().orElse(null);
 
         if (Objects.nonNull(wrapper)) {
             wrapper.extendDuration(duration);
-            currentCell.onEvent(this, WorldEventType.EFFECT_UPDATE, new ByteArray().put(id).put(caster.getOID()).put(type).put(wrapper.getDuration()));
+            currentCell.onEvent(this, WorldEventType.EFFECT_UPDATE, wrapper);
         } else {
-            this.effects.add(new EffectWrapper(effect, caster, duration, type, direction, id));
-            currentCell.onEvent(this, WorldEventType.EFFECT_ADD, new ByteArray().put(id).put(caster.getOID()).put(type).put(duration));
+            wrapper = new EffectWrapper(effect, caster, duration, type, id);
+            this.effects.add(wrapper);
+            currentCell.onEvent(this, WorldEventType.EFFECT_ADD, wrapper);
         }
     }
 
@@ -158,15 +160,16 @@ public class WorldCreature extends WorldObject {
             .filter(damageOverTimeWrapper -> damageOverTimeWrapper.getId() == id && damageOverTimeWrapper.getCaster().equals(caster))
             .findFirst().orElse(null);
 
-        duration = processEffects(EffectDirection.DEFENSE, EffectAttribute.DURATION, duration, damageType);
-        tickInterval = processEffects(EffectDirection.DEFENSE, EffectAttribute.TICK_TIME, tickInterval, damageType);
+        duration = processEffects(CastDirection.DEFENSE, CastAttribute.DURATION, duration, damageType);
+        tickInterval = processEffects(CastDirection.DEFENSE, CastAttribute.TICK_TIME, tickInterval, damageType);
 
         if (Objects.nonNull(wrapper)) {
             wrapper.extendDuration(duration);
-            currentCell.onEvent(this, WorldEventType.DOT_UPDATE, new ByteArray().put(id).put(caster.getOID()).put(wrapper.getDuration()));
+            currentCell.onEvent(this, WorldEventType.DOT_UPDATE, wrapper);
         } else {
-            this.damageOverTime.add(new DamageOverTimeWrapper(damageOverTime, caster, duration, tickInterval, basicPotential, id));
-            currentCell.onEvent(this, WorldEventType.DOT_ADD, new ByteArray().put(id).put(caster.getOID()).put(duration));
+            wrapper = new DamageOverTimeWrapper(damageOverTime, caster, duration, tickInterval, basicPotential, id);
+            this.damageOverTime.add(wrapper);
+            currentCell.onEvent(this, WorldEventType.DOT_ADD, wrapper);
         }
     }
 
@@ -179,7 +182,9 @@ public class WorldCreature extends WorldObject {
             .filter(effect -> effect.getDuration() <= 0)
             .forEach(effect -> {
                 effects.remove(effect);
-                currentCell.onEvent(this, WorldEventType.EFFECT_REMOVE, new ByteArray().put(effect.getId()).put(effect.getCaster().getOID()).put(effect.getType()));
+                currentCell.onEvent(
+                    this, WorldEventType.EFFECT_REMOVE, effect
+                );
             });
 
         this.damageOverTime.parallelStream()
@@ -187,29 +192,32 @@ public class WorldCreature extends WorldObject {
             .filter(dot -> dot.getDuration() <= 0)
             .forEach(dot -> {
                 damageOverTime.remove(dot);
-                currentCell.onEvent(this, WorldEventType.DOT_REMOVE, new ByteArray().put(dot.getId()).put(dot.getCaster().getOID()));
+                currentCell.onEvent(
+                    this, WorldEventType.DOT_REMOVE, dot
+                );
             });
     }
 
     // Effect processors
 
-    public long processEffects(EffectDirection direction, EffectAttribute attribute, long value, DamageType damageType) {
+    public long processEffects(CastDirection direction, CastAttribute attribute, long value, DamageType damageType) {
         final long[] input = new long[] { value };
 
-        List<EffectWrapper> effects = this.effects.stream()
-            .filter(effect -> direction.equals(effect.getDirection()))
-            .filter(effect -> effect.checkDamageType(damageType))
-            .toList();
+        this.effects.forEach(
+            effect -> input[0] = effect.processAttribute(direction, attribute, input[0], damageType)
+        );
 
-        switch (attribute) {
-            case POTENTIAL -> effects.forEach(effect -> input[0] = effect.getEffect().processPotential(input[0]));
-            case DURATION -> effects.forEach(effect -> input[0] = effect.getEffect().processDuration(input[0]));
-            case TICK_TIME -> effects.forEach(effect -> input[0] = effect.getEffect().processTickTime(input[0]));
-            case COOLDOWN -> effects.forEach(effect -> input[0] = effect.getEffect().processCoolDown(input[0]));
-            case CAST_TIME -> effects.forEach(effect -> input[0] = effect.getEffect().processCastTime(input[0]));
-            default -> logger.warn("Unknown effect attribute: {}", attribute);
-        }
+        input[0] = this.creatureStats.processAttribute(direction, attribute, input[0], damageType);
+
+        LOGGER.debug(String.format(
+            "WorldCreature<%s>: Processed effect attribute <%s:%s> from '%s' to '%s'",
+            getOID(), direction, attribute, value, input[0]
+        ));
 
         return input[0];
+    }
+
+    public double processEffects(CastDirection direction, CastAttribute attribute, double value, DamageType damageType) {
+        return processEffects(direction, attribute, Math.round(value * 1000), damageType) / 1000.0;
     }
 }

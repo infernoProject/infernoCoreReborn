@@ -8,7 +8,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ChannelHandler extends ChannelInitializer<SocketChannel> {
 
-    private List<Object> handlers = new CopyOnWriteArrayList<>();
+    private final List<Object> handlers = new CopyOnWriteArrayList<>();
 
     @Override
     @SuppressWarnings("unchecked")
@@ -17,7 +17,9 @@ public class ChannelHandler extends ChannelInitializer<SocketChannel> {
             if (channelHandler instanceof io.netty.channel.ChannelHandler) {
                 channel.pipeline().addLast((io.netty.channel.ChannelHandler) channelHandler);
             } else if (channelHandler instanceof Class) {
-                channel.pipeline().addLast(((Class<? extends io.netty.channel.ChannelHandler>) channelHandler).newInstance());
+                channel.pipeline().addLast(
+                    ((Class<? extends io.netty.channel.ChannelHandler>) channelHandler).getConstructor().newInstance()
+                );
             }
         }
     }

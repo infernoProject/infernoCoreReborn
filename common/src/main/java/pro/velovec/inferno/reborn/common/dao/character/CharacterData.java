@@ -4,7 +4,7 @@ import pro.velovec.inferno.reborn.common.utils.ByteArray;
 import pro.velovec.inferno.reborn.common.utils.ByteConvertible;
 import pro.velovec.inferno.reborn.common.utils.ByteWrapper;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "character_stats") // characters

@@ -1,6 +1,6 @@
 package pro.velovec.inferno.reborn.common.dao.auth;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
